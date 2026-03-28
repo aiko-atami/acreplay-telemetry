@@ -1,0 +1,15 @@
+{
+  "name": "acreplay-parser",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "type": "module",
+  "scripts": {
+    "build:ts": "tsc -p packages/telemetry-pack/tsconfig.json && tsc -p packages/acreplay-wasm/tsconfig.json",
+    "build:wasm": "emcmake cmake -S cpp -B cpp/build-wasm -G Ninja && cmake --build cpp/build-wasm",
+    "build:native": "cmake -S cpp -B cpp/build-native -G Ninja && cmake --build cpp/build-native",
+    "test:cpp": "ctest --test-dir cpp/build-native --output-on-failure",
+    "smoke:wasm": "node scripts/wasm-e2e-smoke.mjs",
+    "build": "pnpm build:wasm && pnpm build:ts",
+    "test": "pnpm test:cpp"
+  }
+}

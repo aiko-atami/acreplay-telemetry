@@ -1,0 +1,44 @@
+[[tools.cmake]]
+version = "4.3.1"
+backend = "aqua:Kitware/CMake"
+"platforms.linux-arm64" = { checksum = "sha256:2c0eca48ac7d0e3a8b4120b801d48903b0630c8ff1e73c44a90398a300dec1ac", url = "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-aarch64.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8", url = "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:c21fe4ade82a6a236aae0b9fbd8263c7ac6824a3fb32d03594456e30b06f3b7f", url = "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-macos-universal.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:c21fe4ade82a6a236aae0b9fbd8263c7ac6824a3fb32d03594456e30b06f3b7f", url = "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-macos-universal.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:03a610be931546474e46a442d171ef10532f4fc847de9cf76b7a8065bbef6a23", url = "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-windows-x86_64.zip"}
+
+[[tools."conda:clang-tools"]]
+version = "22.1.0"
+backend = "conda:clang-tools"
+
+
+[[tools.ninja]]
+version = "1.12.1"
+backend = "aqua:ninja-build/ninja"
+"platforms.linux-arm64" = { url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux-aarch64.zip"}
+"platforms.linux-x64" = { url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip"}
+"platforms.macos-arm64" = { url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip"}
+"platforms.macos-x64" = { url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip"}
+"platforms.windows-x64" = { url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip"}
+
+[[tools.node]]
+version = "24.14.1"
+backend = "core:node"
+"platforms.linux-arm64" = { url = "https://nodejs.org/dist/v24.14.1/node-v24.14.1-linux-arm64.tar.gz"}
+"platforms.linux-x64" = { url = "https://nodejs.org/dist/v24.14.1/node-v24.14.1-linux-x64.tar.gz"}
+"platforms.macos-arm64" = { url = "https://nodejs.org/dist/v24.14.1/node-v24.14.1-darwin-arm64.tar.gz"}
+"platforms.macos-x64" = { url = "https://nodejs.org/dist/v24.14.1/node-v24.14.1-darwin-x64.tar.gz"}
+"platforms.windows-x64" = { url = "https://nodejs.org/dist/v24.14.1/node-v24.14.1-win-x64.zip"}
+
+[[tools.pnpm]]
+version = "10.33.0"
+backend = "aqua:pnpm/pnpm"
+"platforms.linux-arm64" = { checksum = "sha256:06755ad2817548b84317d857d5c8003dc6e9e28416a3ea7467256c49ab400d48", url = "https://github.com/pnpm/pnpm/releases/download/v10.33.0/pnpm-linux-arm64"}
+"platforms.linux-x64" = { checksum = "sha256:8d4e8f7d778e8ac482022e2577011706a872542f6f6f233e795a4d9f978ea8b5", url = "https://github.com/pnpm/pnpm/releases/download/v10.33.0/pnpm-linux-x64"}
+"platforms.macos-arm64" = { checksum = "sha256:ed8a1f140f4de457b01ebe0be3ae28e9a7e28863315dcd53d22ff1e5a32d63ae", url = "https://github.com/pnpm/pnpm/releases/download/v10.33.0/pnpm-macos-arm64"}
+"platforms.macos-x64" = { checksum = "sha256:c31e29554b0e3f4e03f4617195c949595e4dca36085922003de4896c3ca4057d", url = "https://github.com/pnpm/pnpm/releases/download/v10.33.0/pnpm-macos-x64"}
+"platforms.windows-x64" = { checksum = "sha256:afc96009dc39fe23a835d65192049e6a995f342496b175585dc2beda7d42d33f", url = "https://github.com/pnpm/pnpm/releases/download/v10.33.0/pnpm-win-x64.exe"}
+
+[[tools.python]]
+version = "3.12.13"
+backend = "core:python"

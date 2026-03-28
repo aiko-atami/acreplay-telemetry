@@ -1,0 +1,52 @@
+#pragma once
+
+#include <cstdint>
+
+namespace acrp {
+
+enum class ChannelId : std::uint16_t {
+  distance_m = 1,
+  time_ms = 2,
+  pos_x = 3,
+  pos_y = 4,
+  pos_z = 5,
+  yaw_rad = 6,
+  rot_x_rad = 7,
+  rot_y_rad = 8,
+  rot_z_rad = 9,
+  speed_kmh = 10,
+  vel_x_mps = 11,
+  vel_y_mps = 12,
+  vel_z_mps = 13,
+  throttle_raw = 14,
+  brake_raw = 15,
+  steer_deg = 16,
+  gear = 17,
+  rpm = 18,
+  coast = 19,
+  fuel_raw = 20,
+  fuel_per_lap_raw = 21,
+  boost_raw = 22,
+  engine_health_raw = 23,
+  gearbox_being_damaged = 24,
+  drivetrain_speed = 25,
+  wheel_ang_vel_fl = 32,
+  wheel_ang_vel_fr = 33,
+  wheel_ang_vel_rl = 34,
+  wheel_ang_vel_rr = 35,
+  wheel_slip_ratio_fl = 36,
+  wheel_slip_ratio_fr = 37,
+  wheel_slip_ratio_rl = 38,
+  wheel_slip_ratio_rr = 39,
+  wheel_nd_slip_fl = 40,
+  wheel_nd_slip_fr = 41,
+  wheel_nd_slip_rl = 42,
+  wheel_nd_slip_rr = 43,
+  wheel_load_fl_n = 44,
+  wheel_load_fr_n = 45,
+  wheel_load_rl_n = 46,
+  wheel_load_rr_n = 47,
+  clutch_raw = 64,
+};
+
+}  // namespace acrp

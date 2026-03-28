@@ -1,0 +1,15 @@
+cpp/build-*/
+cpp/compile_commands.json
+
+packages/*/dist/
+node_modules/
+.pnpm-store/
+
+build/
+.cache/
+
+CMakeUserPresets.json
+
+mise.local.toml
+mise.*.local.toml
+mise.lock.toml

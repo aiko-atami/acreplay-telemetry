@@ -1,0 +1,20 @@
+CompileFlags:
+    CompilationDatabase: build-native
+
+Index:
+    Background: Build
+    StandardLibrary: true
+
+Diagnostics:
+    UnusedIncludes: Strict
+    MissingIncludes: Strict
+    Includes:
+        AnalyzeAngledIncludes: true
+    ClangTidy:
+        FastCheckFilter: Strict
+
+Completion:
+    HeaderInsertion: IWYU
+
+Hover:
+    ShowAKA: true

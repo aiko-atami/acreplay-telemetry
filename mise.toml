@@ -1,0 +1,68 @@
+[settings]
+lockfile = true
+disable_backends = ["asdf", "vfox"] # Keep backend resolution deterministic
+
+[env]
+CC = "clang"
+CXX = "clang++"
+CMAKE_GENERATOR = "Ninja"
+CMAKE_EXPORT_COMPILE_COMMANDS = "1" # for LSP (clangd)
+
+[tools]
+cmake = "4"
+ninja = "1.12"
+node = "24"
+pnpm = "10"
+python = "3.12"
+"conda:clang-tools" = "22"
+
+[tasks."lint:cpp:format"]
+description = "Check C++ formatting"
+run = "clang-format --dry-run -Werror $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
+
+[tasks."configure:cpp"]
+description = "Configure the native C++ workspace"
+dir = "cpp"
+run = "cmake --preset native-debug --fresh"
+sources = ["cpp/CMakeLists.txt", "cpp/CMakePresets.json", "cpp/**/*.cmake"]
+outputs = ["cpp/build-native/build.ninja", "cpp/build-native/compile_commands.json"]
+
+[tasks."build:cpp"]
+description = "Build the native C++ workspace"
+dir = "cpp"
+run = "cmake --build --preset native-debug"
+depends = ["configure:cpp"]
+
+[tasks."build:native"]
+description = "Configure and build the native C++ workspace with clang"
+depends = ["build:cpp"]
+
+[tasks."test:cpp"]
+description = "Run native C++ tests"
+dir = "cpp"
+run = "ctest --preset native-debug --output-on-failure"
+
+[tasks."lint:cpp:tidy"]
+description = "Run the clang-tidy preset build"
+dir = "cpp"
+run = "cmake --preset native-clang-tidy --fresh && cmake --build --preset native-clang-tidy"
+sources = ["cpp/CMakeLists.txt", "cpp/CMakePresets.json", "cpp/**/*.cmake", "cpp/**/*.cpp", "cpp/**/*.hpp", "cpp/**/*.cc", "cpp/**/*.hh"]
+outputs = ["cpp/build-clang-tidy/build.ninja"]
+
+[tasks."build:ts"]
+description = "Build TypeScript workspace packages"
+env = { PNPM_HOME = ".cache/pnpm", XDG_DATA_HOME = ".cache/xdg-data", XDG_CACHE_HOME = ".cache/xdg-cache" }
+run = "pnpm build:ts"
+
+[tasks."build:wasm"]
+description = "Build the wasm target with the active emsdk/emcmake toolchain"
+env = { PNPM_HOME = ".cache/pnpm", XDG_DATA_HOME = ".cache/xdg-data", XDG_CACHE_HOME = ".cache/xdg-cache" }
+run = "pnpm build:wasm"
+
+[tasks."smoke:wasm"]
+description = "Run the wasm end-to-end smoke test"
+run = "node scripts/wasm-e2e-smoke.mjs"
+
+[tasks.ci]
+description = "Run the default local verification set"
+depends = ["lint:cpp:format", "build:native", "test:cpp", "build:ts"]
