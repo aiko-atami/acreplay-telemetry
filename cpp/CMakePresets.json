@@ -133,6 +133,32 @@
           "name": "native-debug"
         }
       ]
+    },
+    {
+      "name": "native-strict",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "native-strict"
+        },
+        {
+          "type": "build",
+          "name": "native-strict"
+        }
+      ]
+    },
+    {
+      "name": "native-clang-tidy",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "native-clang-tidy"
+        },
+        {
+          "type": "build",
+          "name": "native-clang-tidy"
+        }
+      ]
     }
   ]
 }

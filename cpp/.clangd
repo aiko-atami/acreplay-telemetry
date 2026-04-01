@@ -1,5 +1,5 @@
 CompileFlags:
-    CompilationDatabase: build/native-debug
+    CompilationDatabase: Ancestors
 
 Index:
     Background: Build

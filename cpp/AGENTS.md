@@ -4,7 +4,9 @@ Run repo root via `mise`.
 Required verification order:
 - `lint:cpp:format`
 - `configure:cpp`
+- `lint:cpp:clangd`
 - `build:cpp`
+- `lint:cpp:compile`
 - `test:cpp`
 - `lint:cpp:tidy`
 

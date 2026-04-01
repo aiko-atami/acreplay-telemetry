@@ -27,13 +27,14 @@ description = "Format C++ sources in place"
 run = "clang-format -i $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
 
 [tasks."configure:cpp"]
-description = "Configure the native C++ workspace"
+description = "Configure the native debug C++ workspace and refresh compile_commands.json for clangd"
 dir = "cpp"
 outputs = [
   "build/native-debug/build.ninja",
   "build/native-debug/compile_commands.json",
+  "compile_commands.json",
 ]
-run = "cmake --preset native-debug --fresh"
+run = "cmake --preset native-debug --fresh && cmake -E copy_if_different build/native-debug/compile_commands.json compile_commands.json"
 sources = [
   "CMakeLists.txt",
   "CMakePresets.json",
@@ -46,20 +47,11 @@ dir = "cpp"
 run = "cmake --build --preset native-debug"
 depends = ["configure:cpp"]
 
-[tasks."build:native"]
-description = "Configure and build the native C++ workspace with clang"
-depends = ["build:cpp"]
-
-[tasks."test:cpp"]
-description = "Run native C++ tests"
+[tasks."lint:cpp:compile"]
+description = "Build native C++ with compiler warnings treated as errors"
 dir = "cpp"
-run = "ctest --preset native-debug --output-on-failure"
-
-[tasks."lint:cpp:tidy"]
-description = "Run the clang-tidy preset build"
-dir = "cpp"
-outputs = ["build/native-clang-tidy/build.ninja"]
-run = "cmake --preset native-clang-tidy --fresh && cmake --build --preset native-clang-tidy"
+outputs = ["build/native-strict/build.ninja"]
+run = "cmake --workflow --preset native-strict"
 sources = [
   "CMakeLists.txt",
   "CMakePresets.json",
@@ -69,6 +61,44 @@ sources = [
   "**/*.cc",
   "**/*.hh",
 ]
+
+[tasks."build:cpp:strict"]
+description = "Configure and build native C++ with warnings treated as errors"
+depends = ["lint:cpp:compile"]
+
+[tasks."build:native"]
+description = "Configure and build the native C++ workspace with clang"
+depends = ["build:cpp"]
+
+[tasks."test:cpp"]
+description = "Run native C++ tests"
+dir = "cpp"
+run = "ctest --preset native-debug --output-on-failure"
+depends = ["build:cpp"]
+
+[tasks."lint:cpp:clangd"]
+description = "Run clangd diagnostics that the IDE surfaces"
+run = "node scripts/lint-clangd-diagnostics.js"
+depends = ["configure:cpp"]
+
+[tasks."lint:cpp:tidy"]
+description = "Run the clang-tidy preset build"
+dir = "cpp"
+outputs = ["build/native-clang-tidy/build.ninja"]
+run = "cmake --workflow --preset native-clang-tidy"
+sources = [
+  "CMakeLists.txt",
+  "CMakePresets.json",
+  "**/*.cmake",
+  "**/*.cpp",
+  "**/*.hpp",
+  "**/*.cc",
+  "**/*.hh",
+]
+
+[tasks."lint:cpp"]
+description = "Run the full C++ lint stack"
+depends = ["lint:cpp:format", "lint:cpp:compile", "lint:cpp:clangd", "lint:cpp:tidy"]
 
 [tasks."build:ts"]
 description = "Build TypeScript workspace packages"
@@ -82,8 +112,8 @@ env = { PNPM_HOME = ".cache/pnpm", XDG_CACHE_HOME = ".cache/xdg-cache", XDG_DATA
 
 [tasks."smoke:wasm"]
 description = "Run the wasm end-to-end smoke test"
-run = "node scripts/wasm-e2e-smoke.mjs"
+run = "node scripts/wasm-e2e-smoke.js"
 
 [tasks.ci]
 description = "Run the default local verification set"
-depends = ["lint:cpp:format", "build:native", "test:cpp", "build:ts"]
+depends = ["lint:cpp", "test:cpp", "build:ts"]

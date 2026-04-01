@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "acrp/api.hpp"
+#include "acrp/manifest.hpp"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>

@@ -1,9 +1,11 @@
+# Keep clang-tidy focused on actionable correctness/perf checks.
+# Include hygiene stays in clangd because that's what the IDE surfaces.
 Checks: >
   -*,
   bugprone-*,
   clang-analyzer-*,
-  modernize-*,
   performance-*,
+  modernize-*,
   readability-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-exception-escape,
