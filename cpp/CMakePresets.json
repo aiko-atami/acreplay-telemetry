@@ -7,9 +7,18 @@
   },
   "configurePresets": [
     {
+      "name": "native-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "native-debug",
       "displayName": "Native Debug",
-      "binaryDir": "${sourceDir}/build-native",
+      "inherits": "native-base",
+      "binaryDir": "${sourceDir}/build/native-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -18,9 +27,20 @@
       "name": "native-release",
       "displayName": "Native Release",
       "inherits": "native-debug",
-      "binaryDir": "${sourceDir}/build-release",
+      "binaryDir": "${sourceDir}/build/native-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "ACRP_ENABLE_ASAN": "OFF",
+        "ACRP_ENABLE_UBSAN": "OFF"
+      }
+    },
+    {
+      "name": "native-relwithdebinfo",
+      "displayName": "Native RelWithDebInfo",
+      "inherits": "native-base",
+      "binaryDir": "${sourceDir}/build/native-relwithdebinfo",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "ACRP_ENABLE_ASAN": "OFF",
         "ACRP_ENABLE_UBSAN": "OFF"
       }
@@ -29,7 +49,7 @@
       "name": "native-clang-tidy",
       "displayName": "Native Debug + clang-tidy",
       "inherits": "native-debug",
-      "binaryDir": "${sourceDir}/build-clang-tidy",
+      "binaryDir": "${sourceDir}/build/native-clang-tidy",
       "cacheVariables": {
         "ACRP_ENABLE_CLANG_TIDY": "ON"
       }
@@ -38,7 +58,7 @@
       "name": "native-strict",
       "displayName": "Native Debug + warnings as errors",
       "inherits": "native-debug",
-      "binaryDir": "${sourceDir}/build-strict",
+      "binaryDir": "${sourceDir}/build/native-strict",
       "cacheVariables": {
         "ACRP_WARNINGS_AS_ERRORS": "ON"
       }
@@ -52,6 +72,10 @@
     {
       "name": "native-release",
       "configurePreset": "native-release"
+    },
+    {
+      "name": "native-relwithdebinfo",
+      "configurePreset": "native-relwithdebinfo"
     },
     {
       "name": "native-clang-tidy",
@@ -78,11 +102,37 @@
       }
     },
     {
+      "name": "native-relwithdebinfo",
+      "configurePreset": "native-relwithdebinfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "native-strict",
       "configurePreset": "native-strict",
       "output": {
         "outputOnFailure": true
       }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "native-debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "native-debug"
+        },
+        {
+          "type": "build",
+          "name": "native-debug"
+        },
+        {
+          "type": "test",
+          "name": "native-debug"
+        }
+      ]
     }
   ]
 }

@@ -32,7 +32,8 @@ struct HalfFloat {
       return NAN;
     }
 
-    return sign * std::ldexp(1.0f + static_cast<float>(fraction) / 1024.0f, static_cast<int>(exponent) - 15);
+    return sign * std::ldexp(1.0f + static_cast<float>(fraction) / 1024.0f,
+                             static_cast<int>(exponent) - 15);
   }
 };
 

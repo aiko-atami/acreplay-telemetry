@@ -1,5 +1,5 @@
 function(acrp_enable_sanitizers target_name)
-  if(MSVC OR EMSCRIPTEN OR NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  if(MSVC OR EMSCRIPTEN)
     return()
   endif()
 
@@ -14,7 +14,7 @@ function(acrp_enable_sanitizers target_name)
   endif()
 
   if(acrp_sanitizer_flags)
-    target_compile_options(${target_name} PRIVATE ${acrp_sanitizer_flags})
-    target_link_options(${target_name} PRIVATE ${acrp_sanitizer_flags})
+    target_compile_options(${target_name} PRIVATE "$<$<CONFIG:Debug>:${acrp_sanitizer_flags}>")
+    target_link_options(${target_name} PRIVATE "$<$<CONFIG:Debug>:${acrp_sanitizer_flags}>")
   endif()
 endfunction()

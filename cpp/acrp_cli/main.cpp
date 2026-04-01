@@ -43,7 +43,8 @@ int main(int argc, char* argv[]) {
   std::string driverName;
 
   for (int i = 1; i < argc; ++i) {
-    if (std::strcmp(argv[i], "-h") == 0 || std::strcmp(argv[i], "-help") == 0 || std::strcmp(argv[i], "--help") == 0) {
+    if (std::strcmp(argv[i], "-h") == 0 || std::strcmp(argv[i], "-help") == 0 ||
+        std::strcmp(argv[i], "--help") == 0) {
       std::puts(
           "Assetto Corsa Replay Parser\n"
           "Usage: acrp_cli [OPTIONS] [INPUT FILE(S)]\n\n"

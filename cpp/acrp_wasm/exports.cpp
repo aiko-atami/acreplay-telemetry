@@ -10,7 +10,7 @@
 
 #include "acrp/api.hpp"
 
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #else
 #define EMSCRIPTEN_KEEPALIVE
@@ -56,7 +56,8 @@ std::string escapeJson(std::string_view value) {
 }
 
 std::string base64Encode(std::span<const std::byte> bytes) {
-  static constexpr char kAlphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  static constexpr char kAlphabet[] =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
   std::string out;
   out.reserve(((bytes.size() + 2) / 3) * 4);
@@ -145,7 +146,7 @@ EMSCRIPTEN_KEEPALIVE void acrp_free_buffer(std::uint8_t* ptr) {
     return;
   }
 
-  const auto target = reinterpret_cast<std::byte*>(ptr);
+  auto* const target = reinterpret_cast<std::byte*>(ptr);
   for (auto it = g_owned_buffers.begin(); it != g_owned_buffers.end(); ++it) {
     if (it->get() == target) {
       // Erasing the unique_ptr drops ownership and frees memory allocated in writeJsonResult().
@@ -159,13 +160,16 @@ EMSCRIPTEN_KEEPALIVE void acrp_free_buffer(std::uint8_t* ptr) {
 
 EMSCRIPTEN_KEEPALIVE const char* acrp_last_error_message() { return g_last_error.c_str(); }
 
-EMSCRIPTEN_KEEPALIVE std::uint32_t acrp_last_error_length() { return static_cast<std::uint32_t>(g_last_error.size()); }
+EMSCRIPTEN_KEEPALIVE std::uint32_t acrp_last_error_length() {
+  return static_cast<std::uint32_t>(g_last_error.size());
+}
 
 EMSCRIPTEN_KEEPALIVE int acrp_inspect_json(const std::uint8_t* input_ptr, std::uint32_t input_len,
                                            std::uint8_t** output_ptr, std::uint32_t* output_len) {
   try {
     g_last_error.clear();
-    const auto result = acrp::inspectReplay(std::span(reinterpret_cast<const std::byte*>(input_ptr), input_len));
+    const auto result =
+        acrp::inspectReplay(std::span(reinterpret_cast<const std::byte*>(input_ptr), input_len));
     return writeJsonResult(toJson(result), output_ptr, output_len);
   } catch (const std::exception& error) {
     g_last_error = error.what();
@@ -178,7 +182,8 @@ EMSCRIPTEN_KEEPALIVE int acrp_parse_car_json(const std::uint8_t* input_ptr, std:
                                              std::uint32_t* output_len) {
   try {
     g_last_error.clear();
-    const auto result = acrp::parseCar(std::span(reinterpret_cast<const std::byte*>(input_ptr), input_len), car_index);
+    const auto result = acrp::parseCar(
+        std::span(reinterpret_cast<const std::byte*>(input_ptr), input_len), car_index);
     return writeJsonResult(toJson(result), output_ptr, output_len);
   } catch (const std::exception& error) {
     g_last_error = error.what();
@@ -188,6 +193,6 @@ EMSCRIPTEN_KEEPALIVE int acrp_parse_car_json(const std::uint8_t* input_ptr, std:
 
 }  // extern "C"
 
-#if !defined(ACRP_WASM_NO_MAIN)
+#ifndef ACRP_WASM_NO_MAIN
 int main() { return 0; }
 #endif

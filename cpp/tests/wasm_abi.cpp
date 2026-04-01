@@ -17,10 +17,11 @@ std::uint8_t* acrp_alloc_buffer(std::uint32_t len);
 void acrp_free_buffer(std::uint8_t* ptr);
 const char* acrp_last_error_message();
 std::uint32_t acrp_last_error_length();
-int acrp_inspect_json(const std::uint8_t* input_ptr, std::uint32_t input_len, std::uint8_t** output_ptr,
-                      std::uint32_t* output_len);
-int acrp_parse_car_json(const std::uint8_t* input_ptr, std::uint32_t input_len, std::uint32_t car_index,
-                        std::uint8_t** output_ptr, std::uint32_t* output_len);
+int acrp_inspect_json(const std::uint8_t* input_ptr, std::uint32_t input_len,
+                      std::uint8_t** output_ptr, std::uint32_t* output_len);
+int acrp_parse_car_json(const std::uint8_t* input_ptr, std::uint32_t input_len,
+                        std::uint32_t car_index, std::uint8_t** output_ptr,
+                        std::uint32_t* output_len);
 }
 
 namespace {
@@ -48,7 +49,9 @@ std::string copyJsonBuffer(std::uint8_t* ptr, std::uint32_t len) {
   return json;
 }
 
-std::string readLastError() { return std::string(acrp_last_error_message(), acrp_last_error_length()); }
+std::string readLastError() {
+  return std::string(acrp_last_error_message(), acrp_last_error_length());
+}
 
 std::string extractStringField(std::string_view json, std::string_view key) {
   const auto marker = "\"" + std::string(key) + "\":\"";
@@ -72,7 +75,8 @@ std::uint32_t extractUintField(std::string_view json, std::string_view key) {
   }
   const auto valueStart = start + marker.size();
   const auto valueEnd = json.find_first_not_of("0123456789", valueStart);
-  return static_cast<std::uint32_t>(std::stoul(std::string(json.substr(valueStart, valueEnd - valueStart))));
+  return static_cast<std::uint32_t>(
+      std::stoul(std::string(json.substr(valueStart, valueEnd - valueStart))));
 }
 
 std::size_t countOccurrences(std::string_view text, std::string_view needle) {
@@ -119,7 +123,8 @@ std::vector<std::byte> base64Decode(std::string_view encoded) {
     const auto c = hasC ? decodeChar(encoded[i + 2]) : 0;
     const auto d = hasD ? decodeChar(encoded[i + 3]) : 0;
 
-    const auto packed = (static_cast<std::uint32_t>(a) << 18) | (static_cast<std::uint32_t>(b) << 12) |
+    const auto packed = (static_cast<std::uint32_t>(a) << 18) |
+                        (static_cast<std::uint32_t>(b) << 12) |
                         (static_cast<std::uint32_t>(c) << 6) | static_cast<std::uint32_t>(d);
 
     decoded.push_back(static_cast<std::byte>((packed >> 16) & 0xFF));
@@ -154,16 +159,17 @@ std::vector<std::string> extractLapPackBase64(std::string_view json) {
 }  // namespace
 
 int main() {
-  const auto fixturePath = std::filesystem::path(__FILE__).parent_path() / "fixtures" / "example.acreplay";
+  const auto fixturePath =
+      std::filesystem::path(__FILE__).parent_path() / "fixtures" / "example.acreplay";
   const auto replayBytes = readFileBytes(fixturePath);
   const auto nativeManifest = acrp::inspectReplay(replayBytes);
   const auto nativeCar = acrp::parseCar(replayBytes, 0);
 
   std::uint8_t* inspectJsonPtr = nullptr;
   std::uint32_t inspectJsonLen = 0;
-  const auto inspectStatus =
-      acrp_inspect_json(reinterpret_cast<const std::uint8_t*>(replayBytes.data()),
-                        static_cast<std::uint32_t>(replayBytes.size()), &inspectJsonPtr, &inspectJsonLen);
+  const auto inspectStatus = acrp_inspect_json(
+      reinterpret_cast<const std::uint8_t*>(replayBytes.data()),
+      static_cast<std::uint32_t>(replayBytes.size()), &inspectJsonPtr, &inspectJsonLen);
   assert(inspectStatus == 0);
   const auto inspectJson = copyJsonBuffer(inspectJsonPtr, inspectJsonLen);
 
@@ -172,14 +178,15 @@ int main() {
   assert(extractStringField(inspectJson, "trackConfig") == nativeManifest.trackConfig);
   assert(extractStringField(inspectJson, "driverName") == nativeManifest.driverName);
   assert(extractUintField(inspectJson, "carIndex") == nativeManifest.carIndex);
-  assert(extractUintField(inspectJson, "recordingIntervalMs") == nativeManifest.recordingIntervalMs);
+  assert(extractUintField(inspectJson, "recordingIntervalMs") ==
+         nativeManifest.recordingIntervalMs);
   assert(countOccurrences(inspectJson, "\"lapNumber\":") == nativeManifest.laps.size());
 
   std::uint8_t* parseJsonPtr = nullptr;
   std::uint32_t parseJsonLen = 0;
-  const auto parseStatus =
-      acrp_parse_car_json(reinterpret_cast<const std::uint8_t*>(replayBytes.data()),
-                          static_cast<std::uint32_t>(replayBytes.size()), 0, &parseJsonPtr, &parseJsonLen);
+  const auto parseStatus = acrp_parse_car_json(
+      reinterpret_cast<const std::uint8_t*>(replayBytes.data()),
+      static_cast<std::uint32_t>(replayBytes.size()), 0, &parseJsonPtr, &parseJsonLen);
   assert(parseStatus == 0);
   const auto parseJson = copyJsonBuffer(parseJsonPtr, parseJsonLen);
 
@@ -188,7 +195,8 @@ int main() {
   assert(extractStringField(parseJson, "trackConfig") == nativeCar.manifest.trackConfig);
   assert(extractStringField(parseJson, "driverName") == nativeCar.manifest.driverName);
   assert(extractUintField(parseJson, "carIndex") == nativeCar.manifest.carIndex);
-  assert(extractUintField(parseJson, "recordingIntervalMs") == nativeCar.manifest.recordingIntervalMs);
+  assert(extractUintField(parseJson, "recordingIntervalMs") ==
+         nativeCar.manifest.recordingIntervalMs);
 
   const auto wasmLapPacks = extractLapPackBase64(parseJson);
   assert(wasmLapPacks.size() == nativeCar.lapPacks.size());
@@ -209,9 +217,9 @@ int main() {
   assert(!readLastError().empty());
   acrp_free_buffer(invalidPtr);
 
-  const auto invalidCarStatus =
-      acrp_parse_car_json(reinterpret_cast<const std::uint8_t*>(replayBytes.data()),
-                          static_cast<std::uint32_t>(replayBytes.size()), 999, &outputPtr, &outputLen);
+  const auto invalidCarStatus = acrp_parse_car_json(
+      reinterpret_cast<const std::uint8_t*>(replayBytes.data()),
+      static_cast<std::uint32_t>(replayBytes.size()), 999, &outputPtr, &outputLen);
   assert(invalidCarStatus != 0);
   assert(readLastError().find("Car index is out of range") != std::string::npos);
 

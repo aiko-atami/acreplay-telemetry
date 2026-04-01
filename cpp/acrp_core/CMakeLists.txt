@@ -1,4 +1,5 @@
 add_library(acrp_core STATIC)
+add_library(acrp::acrp_core ALIAS acrp_core)
 
 target_sources(
   acrp_core
@@ -17,7 +18,13 @@ target_sources(
       include/acrp/status.hpp
 )
 
-target_include_directories(acrp_core PUBLIC include)
+target_include_directories(
+  acrp_core
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+target_compile_features(acrp_core PUBLIC cxx_std_23)
 
 if(EMSCRIPTEN)
   target_compile_options(acrp_core PUBLIC -sUSE_ZLIB=1)
@@ -32,3 +39,12 @@ include(Sanitizers)
 
 acrp_enable_warnings(acrp_core)
 acrp_enable_sanitizers(acrp_core)
+
+install(
+  TARGETS acrp_core
+  EXPORT acreplayTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

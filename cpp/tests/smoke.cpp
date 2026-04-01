@@ -60,7 +60,7 @@ std::int8_t readI8(std::span<const std::byte> bytes, std::size_t offset) {
 
 struct ChannelDescriptorView {
   std::uint16_t channelId{};
-  acrp::ChannelValueType valueType{};
+  acrp::ChannelValueType valueType{acrp::ChannelValueType::f32};
   std::uint32_t sampleCount{};
   std::uint32_t byteOffset{};
   std::uint32_t byteLength{};
@@ -74,14 +74,16 @@ ChannelDescriptorView readChannelDescriptor(std::span<const std::byte> pack, std
   const auto offset = descriptorsOffset + static_cast<std::size_t>(index) * descriptorBytes;
   return ChannelDescriptorView{
       .channelId = readU16(pack, offset),
-      .valueType = static_cast<acrp::ChannelValueType>(std::to_integer<std::uint8_t>(pack[offset + 2])),
+      .valueType =
+          static_cast<acrp::ChannelValueType>(std::to_integer<std::uint8_t>(pack[offset + 2])),
       .sampleCount = readU32(pack, offset + 4),
       .byteOffset = readU32(pack, offset + 8),
       .byteLength = readU32(pack, offset + 12),
   };
 }
 
-ChannelDescriptorView findChannelDescriptor(std::span<const std::byte> pack, std::uint16_t channelId) {
+ChannelDescriptorView findChannelDescriptor(std::span<const std::byte> pack,
+                                            std::uint16_t channelId) {
   const auto channelCount = readU16(pack, 10);
   for (std::uint16_t index = 0; index < channelCount; ++index) {
     const auto descriptor = readChannelDescriptor(pack, index);
@@ -186,11 +188,16 @@ void validatePack(const acrp::ParsedLapPack& lapPack, const acrp::LapManifestV1&
     (void)findChannelDescriptor(pack, channelId);
   }
 
-  const auto distanceOffset = getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::distance_m));
-  const auto timeOffset = getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::time_ms));
-  const auto speedOffset = getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::speed_kmh));
-  const auto gearOffset = getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::gear));
-  const auto yawOffset = getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::yaw_rad));
+  const auto distanceOffset =
+      getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::distance_m));
+  const auto timeOffset =
+      getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::time_ms));
+  const auto speedOffset =
+      getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::speed_kmh));
+  const auto gearOffset =
+      getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::gear));
+  const auto yawOffset =
+      getChannelDataOffset(pack, static_cast<std::uint16_t>(acrp::ChannelId::yaw_rad));
 
   float previousDistance = readF32(pack, distanceOffset);
   float previousTime = readF32(pack, timeOffset);
@@ -214,7 +221,8 @@ void validatePack(const acrp::ParsedLapPack& lapPack, const acrp::LapManifestV1&
 
   const bool hasCsp = (flags & kFlagHasCsp) != 0;
   if (hasCsp) {
-    const auto clutchDescriptor = findChannelDescriptor(pack, static_cast<std::uint16_t>(acrp::ChannelId::clutch_raw));
+    const auto clutchDescriptor =
+        findChannelDescriptor(pack, static_cast<std::uint16_t>(acrp::ChannelId::clutch_raw));
     assert(clutchDescriptor.valueType == acrp::ChannelValueType::u8);
   }
 }
@@ -222,7 +230,8 @@ void validatePack(const acrp::ParsedLapPack& lapPack, const acrp::LapManifestV1&
 }  // namespace
 
 int main() {
-  const auto fixturePath = std::filesystem::path(__FILE__).parent_path() / "fixtures" / "example.acreplay";
+  const auto fixturePath =
+      std::filesystem::path(__FILE__).parent_path() / "fixtures" / "example.acreplay";
   const auto replayBytes = readFileBytes(fixturePath);
 
   const auto manifest = acrp::inspectReplay(replayBytes);
@@ -246,6 +255,7 @@ int main() {
     validatePack(parsedCar.lapPacks[index], parsedCar.manifest.laps[index]);
   }
 
-  std::cout << "fixture replay parsed successfully: " << parsedCar.lapPacks.size() << " lap packs\n";
+  std::cout << "fixture replay parsed successfully: " << parsedCar.lapPacks.size()
+            << " lap packs\n";
   return 0;
 }

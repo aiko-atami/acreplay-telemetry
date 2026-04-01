@@ -33,7 +33,8 @@ void writeFileBytes(const std::filesystem::path& path, std::span<const std::byte
   if (!output) {
     throw std::runtime_error("Failed to open output file");
   }
-  output.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+  output.write(reinterpret_cast<const char*>(bytes.data()),
+               static_cast<std::streamsize>(bytes.size()));
   if (!output) {
     throw std::runtime_error("Failed to write output file");
   }
@@ -56,6 +57,7 @@ int main(int argc, char** argv) {
   }
 
   writeFileBytes(argv[2], parsedCar.lapPacks[lapIndex].bytes);
-  std::cout << "exported lap pack " << lapIndex << " for car " << carIndex << " to " << argv[2] << '\n';
+  std::cout << "exported lap pack " << lapIndex << " for car " << carIndex << " to " << argv[2]
+            << '\n';
   return 0;
 }

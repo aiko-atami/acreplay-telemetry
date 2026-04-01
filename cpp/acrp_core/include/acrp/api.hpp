@@ -20,6 +20,7 @@ struct ParsedCarResult {
 };
 
 [[nodiscard]] ReplayManifestV1 inspectReplay(std::span<const std::byte> replayBytes);
-[[nodiscard]] ParsedCarResult parseCar(std::span<const std::byte> replayBytes, std::uint32_t carIndex);
+[[nodiscard]] ParsedCarResult parseCar(std::span<const std::byte> replayBytes,
+                                       std::uint32_t carIndex);
 
 }  // namespace acrp
