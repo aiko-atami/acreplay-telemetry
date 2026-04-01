@@ -1,12 +1,14 @@
 [settings]
 lockfile = true
-disable_backends = ["asdf", "vfox"] # Keep backend resolution deterministic
+# Keep backend resolution deterministic.
+disable_backends = ["asdf", "vfox"]
 
 [env]
 CC = "clang"
 CXX = "clang++"
 CMAKE_GENERATOR = "Ninja"
-CMAKE_EXPORT_COMPILE_COMMANDS = "1" # for LSP (clangd)
+# For LSP (clangd).
+CMAKE_EXPORT_COMPILE_COMMANDS = "1"
 
 [tools]
 cmake = "4"
@@ -20,12 +22,23 @@ python = "3.12"
 description = "Check C++ formatting"
 run = "clang-format --dry-run -Werror $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
 
+[tasks."fix:cpp:format"]
+description = "Format C++ sources in place"
+run = "clang-format -i $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
+
 [tasks."configure:cpp"]
 description = "Configure the native C++ workspace"
 dir = "cpp"
+outputs = [
+  "build/native-debug/build.ninja",
+  "build/native-debug/compile_commands.json",
+]
 run = "cmake --preset native-debug --fresh"
-sources = ["cpp/CMakeLists.txt", "cpp/CMakePresets.json", "cpp/**/*.cmake"]
-outputs = ["cpp/build-native/build.ninja", "cpp/build-native/compile_commands.json"]
+sources = [
+  "CMakeLists.txt",
+  "CMakePresets.json",
+  "**/*.cmake",
+]
 
 [tasks."build:cpp"]
 description = "Build the native C++ workspace"
@@ -45,19 +58,27 @@ run = "ctest --preset native-debug --output-on-failure"
 [tasks."lint:cpp:tidy"]
 description = "Run the clang-tidy preset build"
 dir = "cpp"
+outputs = ["build/native-clang-tidy/build.ninja"]
 run = "cmake --preset native-clang-tidy --fresh && cmake --build --preset native-clang-tidy"
-sources = ["cpp/CMakeLists.txt", "cpp/CMakePresets.json", "cpp/**/*.cmake", "cpp/**/*.cpp", "cpp/**/*.hpp", "cpp/**/*.cc", "cpp/**/*.hh"]
-outputs = ["cpp/build-clang-tidy/build.ninja"]
+sources = [
+  "CMakeLists.txt",
+  "CMakePresets.json",
+  "**/*.cmake",
+  "**/*.cpp",
+  "**/*.hpp",
+  "**/*.cc",
+  "**/*.hh",
+]
 
 [tasks."build:ts"]
 description = "Build TypeScript workspace packages"
-env = { PNPM_HOME = ".cache/pnpm", XDG_DATA_HOME = ".cache/xdg-data", XDG_CACHE_HOME = ".cache/xdg-cache" }
 run = "pnpm build:ts"
+env = { PNPM_HOME = ".cache/pnpm", XDG_CACHE_HOME = ".cache/xdg-cache", XDG_DATA_HOME = ".cache/xdg-data" }
 
 [tasks."build:wasm"]
 description = "Build the wasm target with the active emsdk/emcmake toolchain"
-env = { PNPM_HOME = ".cache/pnpm", XDG_DATA_HOME = ".cache/xdg-data", XDG_CACHE_HOME = ".cache/xdg-cache" }
 run = "pnpm build:wasm"
+env = { PNPM_HOME = ".cache/pnpm", XDG_CACHE_HOME = ".cache/xdg-cache", XDG_DATA_HOME = ".cache/xdg-data" }
 
 [tasks."smoke:wasm"]
 description = "Run the wasm end-to-end smoke test"
