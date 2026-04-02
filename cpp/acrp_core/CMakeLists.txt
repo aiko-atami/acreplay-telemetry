@@ -26,12 +26,18 @@ target_include_directories(
 )
 target_compile_features(acrp_core PUBLIC cxx_std_23)
 
-if(EMSCRIPTEN)
-  target_compile_options(acrp_core PUBLIC -sUSE_ZLIB=1)
-  target_link_options(acrp_core PUBLIC -sUSE_ZLIB=1)
+if(ACRP_WITH_CSP)
+  target_compile_definitions(acrp_core PRIVATE ACRP_HAS_ZLIB=1)
+
+  if(EMSCRIPTEN)
+    target_compile_options(acrp_core PUBLIC -sUSE_ZLIB=1)
+    target_link_options(acrp_core PUBLIC -sUSE_ZLIB=1)
+  else()
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(acrp_core PUBLIC ZLIB::ZLIB)
+  endif()
 else()
-  find_package(ZLIB REQUIRED)
-  target_link_libraries(acrp_core PUBLIC ZLIB::ZLIB)
+  target_compile_definitions(acrp_core PRIVATE ACRP_HAS_ZLIB=0)
 endif()
 
 include(CompilerWarnings)

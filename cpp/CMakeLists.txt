@@ -16,6 +16,7 @@ option(ACRP_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 option(ACRP_ENABLE_ASAN "Enable AddressSanitizer in Debug builds" OFF)
 option(ACRP_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer in Debug builds" OFF)
 option(ACRP_ENABLE_CLANG_TIDY "Run clang-tidy during CMake builds when available" OFF)
+option(ACRP_WITH_CSP "Enable CSP EXT_PERCAR parsing via zlib" ON)
 
 if(ACRP_ENABLE_CLANG_TIDY)
   find_program(CLANG_TIDY_EXE NAMES clang-tidy)
@@ -41,6 +42,7 @@ configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/acrpConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/acrpConfig.cmake"
   INSTALL_DESTINATION "${ACRP_INSTALL_CMAKEDIR}"
+  PATH_VARS ACRP_INSTALL_CMAKEDIR
 )
 
 write_basic_package_version_file(

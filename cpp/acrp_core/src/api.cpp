@@ -1,6 +1,8 @@
 #include "acrp/api.hpp"
 
+#if ACRP_HAS_ZLIB
 #include <zlib.h>
+#endif
 
 #include <array>
 #include <bit>
@@ -961,6 +963,7 @@ ParsedReplayData parseReplayData(std::span<const std::byte> replayBytes) {
     }
 
     if (cspOffset.has_value()) {
+#if ACRP_HAS_ZLIB
       const auto originalPos = in.tellg();
       in.seekg(static_cast<std::streamoff>(*cspOffset), std::ios_base::beg);
 
@@ -1022,6 +1025,9 @@ ParsedReplayData parseReplayData(std::span<const std::byte> replayBytes) {
       }
 
       in.seekg(originalPos, std::ios_base::beg);
+#else
+      (void)cspOffset;
+#endif
     }
 
     replay.cars.push_back(std::move(car));
