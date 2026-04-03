@@ -50,6 +50,7 @@ jobs:
             binary_suffix: linux-x86_64
             cmake_generator: Ninja
             build_type: Release
+            cmake_build_type_arg: '-DCMAKE_BUILD_TYPE="Release"'
             cmake_extra_args: "-DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14"
             exe_ext: ""
           - name: macos-arm64
@@ -59,6 +60,7 @@ jobs:
             binary_suffix: macos-arm64
             cmake_generator: Ninja
             build_type: Release
+            cmake_build_type_arg: '-DCMAKE_BUILD_TYPE="Release"'
             cmake_extra_args: ""
             exe_ext: ""
           - name: windows-x86_64
@@ -68,6 +70,7 @@ jobs:
             binary_suffix: windows-x86_64
             cmake_generator: "Visual Studio 17 2022"
             build_type: Release
+            cmake_build_type_arg: ""
             cmake_extra_args: "-A x64"
             exe_ext: ".exe"
     env:
@@ -121,7 +124,7 @@ jobs:
           set -euo pipefail
           cmake -S cpp -B "${CMAKE_BUILD_DIR}" \
             -G "${{ matrix.cmake_generator }}" \
-            -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
+            ${{ matrix.cmake_build_type_arg }} \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
             -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
             ${{ matrix.cmake_extra_args }}
