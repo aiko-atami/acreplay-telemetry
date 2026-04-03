@@ -1,12 +1,12 @@
 import {readFile} from 'node:fs/promises'
 import {resolve} from 'node:path'
 
-import createAcrpModule from '../cpp/build-wasm/acrp_wasm/acrp_wasm.js'
+import createAcrpModule from '../cpp/build/wasm/acrp_wasm/acrp_wasm.js'
 import {createEmscriptenModuleFactory, createReplayParser,} from '../packages/acreplay-wasm/dist/index.js'
 import {readLapPack} from '../packages/telemetry-pack/dist/index.js'
 
 const repoRoot = resolve(import.meta.dirname, '..')
-const wasmPath = resolve(repoRoot, 'cpp/build-wasm/acrp_wasm/acrp_wasm.wasm')
+const wasmPath = resolve(repoRoot, 'cpp/build/wasm/acrp_wasm/acrp_wasm.wasm')
 const replayPath = resolve(repoRoot, 'cpp/tests/fixtures/example.acreplay')
 
 const fileBytes = await readFile(replayPath)

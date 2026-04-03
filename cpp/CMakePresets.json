@@ -11,6 +11,7 @@
       "hidden": true,
       "generator": "Ninja",
       "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++-14",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
@@ -20,18 +21,18 @@
       "inherits": "native-base",
       "binaryDir": "${sourceDir}/build/native-debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ACRP_ENABLE_ASAN": "ON",
+        "ACRP_ENABLE_UBSAN": "ON"
       }
     },
     {
       "name": "native-release",
       "displayName": "Native Release",
-      "inherits": "native-debug",
+      "inherits": "native-base",
       "binaryDir": "${sourceDir}/build/native-release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "ACRP_ENABLE_ASAN": "OFF",
-        "ACRP_ENABLE_UBSAN": "OFF"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
@@ -43,15 +44,6 @@
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "ACRP_ENABLE_ASAN": "OFF",
         "ACRP_ENABLE_UBSAN": "OFF"
-      }
-    },
-    {
-      "name": "native-clang-tidy",
-      "displayName": "Native Debug + clang-tidy",
-      "inherits": "native-debug",
-      "binaryDir": "${sourceDir}/build/native-clang-tidy",
-      "cacheVariables": {
-        "ACRP_ENABLE_CLANG_TIDY": "ON"
       }
     },
     {
@@ -76,10 +68,6 @@
     {
       "name": "native-relwithdebinfo",
       "configurePreset": "native-relwithdebinfo"
-    },
-    {
-      "name": "native-clang-tidy",
-      "configurePreset": "native-clang-tidy"
     },
     {
       "name": "native-strict",
@@ -144,19 +132,6 @@
         {
           "type": "build",
           "name": "native-strict"
-        }
-      ]
-    },
-    {
-      "name": "native-clang-tidy",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "native-clang-tidy"
-        },
-        {
-          "type": "build",
-          "name": "native-clang-tidy"
         }
       ]
     }

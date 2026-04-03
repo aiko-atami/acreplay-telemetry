@@ -1,119 +1,128 @@
 [settings]
 lockfile = true
-# Keep backend resolution deterministic.
 disable_backends = ["asdf", "vfox"]
 
 [env]
-CC = "clang"
-CXX = "clang++"
+ACRP_CMAKE_CONFIGURE_ARGS = ""
 CMAKE_GENERATOR = "Ninja"
-# For LSP (clangd).
 CMAKE_EXPORT_COMPILE_COMMANDS = "1"
 
 [tools]
-cmake = "4"
-ninja = "1.12"
 node = "24"
 pnpm = "10"
-python = "3.12"
-"conda:clang-tools" = "22"
 
-[tasks."lint:cpp:format"]
-description = "Check C++ formatting"
-run = "clang-format --dry-run -Werror $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
+# ── Setup ─────────────────────────────────────────────────────────────
 
-[tasks."fix:cpp:format"]
-description = "Format C++ sources in place"
-run = "clang-format -i $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
+[tasks."hooks:install"]
+description = "Install repository-managed git hooks"
+run = "git config core.hooksPath .githooks"
+
+# ── C++ · Configure ──────────────────────────────────────────────────
 
 [tasks."configure:cpp"]
-description = "Configure the native debug C++ workspace and refresh compile_commands.json for clangd"
+description = "Configure native-debug and refresh compile_commands.json"
 dir = "cpp"
+run = "cmake --preset native-debug --fresh && cmake -E copy_if_different build/native-debug/compile_commands.json compile_commands.json"
+sources = ["CMakeLists.txt", "CMakePresets.json", "vcpkg.json", "**/*.cmake"]
 outputs = [
   "build/native-debug/build.ninja",
   "build/native-debug/compile_commands.json",
   "compile_commands.json",
 ]
-run = "cmake --preset native-debug --fresh && cmake -E copy_if_different build/native-debug/compile_commands.json compile_commands.json"
-sources = [
-  "CMakeLists.txt",
-  "CMakePresets.json",
-  "**/*.cmake",
-]
+
+[tasks."configure:cpp:release"]
+description = "Configure native-release"
+dir = "cpp"
+run = "cmake --preset native-release --fresh ${ACRP_CMAKE_CONFIGURE_ARGS}"
+run_windows = "cmake --preset native-release --fresh %ACRP_CMAKE_CONFIGURE_ARGS%"
+sources = ["CMakeLists.txt", "CMakePresets.json", "vcpkg.json", "**/*.cmake"]
+outputs = ["build/native-release/build.ninja"]
+
+# ── C++ · Build ──────────────────────────────────────────────────────
 
 [tasks."build:cpp"]
-description = "Build the native C++ workspace"
+description = "Build native-debug"
 dir = "cpp"
 run = "cmake --build --preset native-debug"
 depends = ["configure:cpp"]
 
-[tasks."lint:cpp:compile"]
-description = "Build native C++ with compiler warnings treated as errors"
+[tasks."build:cpp:release"]
+description = "Build native-release"
 dir = "cpp"
-outputs = ["build/native-strict/build.ninja"]
-run = "cmake --workflow --preset native-strict"
-sources = [
-  "CMakeLists.txt",
-  "CMakePresets.json",
-  "**/*.cmake",
-  "**/*.cpp",
-  "**/*.hpp",
-  "**/*.cc",
-  "**/*.hh",
-]
+run = "cmake --build --preset native-release"
+depends = ["configure:cpp:release"]
 
 [tasks."build:cpp:strict"]
-description = "Configure and build native C++ with warnings treated as errors"
+description = "Build native-strict (warnings as errors)"
 depends = ["lint:cpp:compile"]
 
 [tasks."build:native"]
-description = "Configure and build the native C++ workspace with clang"
+description = "Alias → build:cpp"
 depends = ["build:cpp"]
 
+# ── C++ · Test ───────────────────────────────────────────────────────
+
 [tasks."test:cpp"]
-description = "Run native C++ tests"
+description = "Run native C++ tests (ASan+UBSan in debug)"
 dir = "cpp"
 run = "ctest --preset native-debug --output-on-failure"
 depends = ["build:cpp"]
 
+# ── C++ · Lint & Format ─────────────────────────────────────────────
+
+[tasks."lint:cpp:format"]
+description = "Check C++ formatting (clang-format --dry-run)"
+run = "clang-format --dry-run -Werror $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
+
+[tasks."lint:cpp:compile"]
+description = "Build native-strict (warnings as errors)"
+dir = "cpp"
+run = "cmake --workflow --preset native-strict"
+sources = [
+  "CMakeLists.txt", "CMakePresets.json", "vcpkg.json",
+  "**/*.cmake", "**/*.cpp", "**/*.hpp", "**/*.cc", "**/*.hh",
+]
+outputs = ["build/native-strict/build.ninja"]
+
 [tasks."lint:cpp:clangd"]
-description = "Run clangd diagnostics that the IDE surfaces"
+description = "Run clangd diagnostics"
 run = "node scripts/lint-clangd-diagnostics.js"
 depends = ["configure:cpp"]
 
 [tasks."lint:cpp:tidy"]
-description = "Run the clang-tidy preset build"
+description = "Run clang-tidy on C++ sources"
 dir = "cpp"
-outputs = ["build/native-clang-tidy/build.ninja"]
-run = "cmake --workflow --preset native-clang-tidy"
-sources = [
-  "CMakeLists.txt",
-  "CMakePresets.json",
-  "**/*.cmake",
-  "**/*.cpp",
-  "**/*.hpp",
-  "**/*.cc",
-  "**/*.hh",
-]
+run = "run-clang-tidy -p build/native-debug -extra-arg=-Wno-unknown-warning-option"
+depends = ["configure:cpp"]
 
 [tasks."lint:cpp"]
-description = "Run the full C++ lint stack"
+description = "Full C++ lint stack"
 depends = ["lint:cpp:format", "lint:cpp:compile", "lint:cpp:clangd", "lint:cpp:tidy"]
 
+[tasks."fix:cpp:format"]
+description = "Auto-format C++ sources in place"
+run = "clang-format -i $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '*.hh' -g '*.hpp')"
+
+# ── TypeScript ────────────────────────────────────────────────────────
+
 [tasks."build:ts"]
-description = "Build TypeScript workspace packages"
-run = "pnpm build:ts"
-env = { PNPM_HOME = ".cache/pnpm", XDG_CACHE_HOME = ".cache/xdg-cache", XDG_DATA_HOME = ".cache/xdg-data" }
+description = "Build TS packages with tsgo"
+run = "tsgo -p packages/telemetry-pack/tsconfig.json && tsgo -p packages/acreplay-wasm/tsconfig.json"
+
+# ── Wasm ─────────────────────────────────────────────────────────────
 
 [tasks."build:wasm"]
-description = "Build the wasm target with the active emsdk/emcmake toolchain"
-run = "pnpm build:wasm"
-env = { PNPM_HOME = ".cache/pnpm", XDG_CACHE_HOME = ".cache/xdg-cache", XDG_DATA_HOME = ".cache/xdg-data" }
+description = "Build C++ → Wasm via Emscripten"
+dir = "cpp"
+run = "emcmake cmake -S . -B build/wasm -G Ninja && cmake --build build/wasm"
 
 [tasks."smoke:wasm"]
-description = "Run the wasm end-to-end smoke test"
+description = "Wasm end-to-end smoke test"
 run = "node scripts/wasm-e2e-smoke.js"
+depends = ["build:wasm", "build:ts"]
+
+# ── CI ───────────────────────────────────────────────────────────────
 
 [tasks.ci]
-description = "Run the default local verification set"
+description = "Default local verification set"
 depends = ["lint:cpp", "test:cpp", "build:ts"]

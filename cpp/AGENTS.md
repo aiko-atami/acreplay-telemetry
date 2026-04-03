@@ -1,14 +1,6 @@
 # C++ Rules
 
-Run repo root via `mise`.
-Required verification order:
-- `lint:cpp:format`
-- `configure:cpp`
-- `lint:cpp:clangd`
-- `build:cpp`
-- `lint:cpp:compile`
-- `test:cpp`
-- `lint:cpp:tidy`
+Always run `clang-format -i` and `clang-tidy --fix` after generating C++ code. Ensure all code matches the rules in .clang-format
 
 Invariants:
 - Most parser, lap segmentation, manifest building, and pack writing still live in `cpp/acrp_core/src/api.cpp`. Do not assume the behavior is split into smaller translation units.

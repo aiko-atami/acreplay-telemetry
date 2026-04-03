@@ -20,37 +20,15 @@ target_sources(
 
 target_include_directories(
   acrp_core
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
-target_compile_features(acrp_core PUBLIC cxx_std_23)
 
-if(ACRP_WITH_CSP)
-  target_compile_definitions(acrp_core PRIVATE ACRP_HAS_ZLIB=1)
-
-  if(EMSCRIPTEN)
-    target_compile_options(acrp_core PUBLIC -sUSE_ZLIB=1)
-    target_link_options(acrp_core PUBLIC -sUSE_ZLIB=1)
-  else()
-    find_package(ZLIB REQUIRED)
-    target_link_libraries(acrp_core PUBLIC ZLIB::ZLIB)
-  endif()
+if(EMSCRIPTEN)
+  target_compile_options(acrp_core PUBLIC -sUSE_ZLIB=1)
+  target_link_options(acrp_core PUBLIC -sUSE_ZLIB=1)
 else()
-  target_compile_definitions(acrp_core PRIVATE ACRP_HAS_ZLIB=0)
+  target_link_libraries(acrp_core PUBLIC ZLIB::ZLIB)
 endif()
-
-include(CompilerWarnings)
-include(Sanitizers)
 
 acrp_enable_warnings(acrp_core)
 acrp_enable_sanitizers(acrp_core)
-
-install(
-  TARGETS acrp_core
-  EXPORT acreplayTargets
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)

@@ -253,7 +253,7 @@ class ClangdClient {
 try {
   await readFile(compileCommandsPath, 'utf8');
 } catch {
-  logError('cpp/compile_commands.json is missing. Run `mise run configure:cpp` first.');
+  logError('cpp/compile_commands.json is missing. Run `cmake --preset native-debug --fresh` in `cpp/` first.');
   process.exit(2);
 }
 
