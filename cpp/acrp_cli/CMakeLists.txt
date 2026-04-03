@@ -4,4 +4,6 @@ if(NOT EMSCRIPTEN)
 
   acrp_enable_warnings(acrp_cli)
   acrp_enable_sanitizers(acrp_cli)
+
+  install(TARGETS acrp_cli RUNTIME DESTINATION bin)
 endif()
