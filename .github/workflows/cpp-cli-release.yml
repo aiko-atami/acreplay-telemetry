@@ -83,11 +83,15 @@ jobs:
 
       - name: Export build cache paths
         shell: bash
-        run: echo "VCPKG_DEFAULT_BINARY_CACHE=${RUNNER_TEMP}/vcpkg-binary-cache" >> "${GITHUB_ENV}"
+        run: |
+          echo "VCPKG_DEFAULT_BINARY_CACHE=${RUNNER_TEMP}/vcpkg-binary-cache" >> "${GITHUB_ENV}"
+          echo "VCPKG_DOWNLOADS=${RUNNER_TEMP}/vcpkg-downloads" >> "${GITHUB_ENV}"
 
-      - name: Create vcpkg binary cache directory
+      - name: Create vcpkg cache directories
         shell: bash
-        run: mkdir -p "${VCPKG_DEFAULT_BINARY_CACHE}"
+        run: |
+          mkdir -p "${VCPKG_DEFAULT_BINARY_CACHE}"
+          mkdir -p "${VCPKG_DOWNLOADS}"
 
       - name: Cache vcpkg binary cache
         uses: actions/cache@v5
@@ -106,6 +110,17 @@ jobs:
             }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ matrix.arch }}-
+
+      - name: Cache vcpkg downloads
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_DOWNLOADS }}
+          key: >-
+            vcpkg-downloads-${{ runner.os }}-${{ matrix.arch }}-${{
+              hashFiles('cpp/vcpkg.json', 'cpp/vcpkg-configuration.json')
+            }}
+          restore-keys: |
+            vcpkg-downloads-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: Ensure vcpkg is available
         shell: bash
@@ -147,6 +162,13 @@ jobs:
           set -euo pipefail
           cmake --install "${CMAKE_BUILD_DIR}" --config "${{ matrix.build_type }}"
 
+      - name: Inspect installed files
+        shell: bash
+        run: |
+          set -euo pipefail
+          find "${CMAKE_INSTALL_PREFIX}" -maxdepth 3 -type f | sort
+          ls -la "${CMAKE_BUILD_DIR}/acrp_cli" || true
+
       - name: Stage binary and smoke-test
         shell: bash
         run: |
@@ -158,6 +180,18 @@ jobs:
             chmod +x "dist/${binary_name}"
           fi
           "./dist/${binary_name}" --help
+
+      - name: Diagnostics on failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          echo "== Build tree =="
+          find "${CMAKE_BUILD_DIR}" -maxdepth 4 -type f | sort
+          echo "== Install tree =="
+          find "${CMAKE_INSTALL_PREFIX}" -maxdepth 4 -type f | sort
+          echo "== Dist tree =="
+          find dist -maxdepth 2 -type f | sort
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v7
