@@ -4,6 +4,7 @@ disable_backends = ["asdf", "vfox"]
 
 [env]
 ACRP_CMAKE_CONFIGURE_ARGS = ""
+ACRP_CMAKE_CONFIGURE_ARGS_WINDOWS = "-DVCPKG_TARGET_TRIPLET=x64-windows-static"
 CMAKE_GENERATOR = "Ninja"
 CMAKE_EXPORT_COMPILE_COMMANDS = "1"
 
@@ -34,7 +35,7 @@ outputs = [
 description = "Configure native-release"
 dir = "cpp"
 run = "cmake --preset native-release --fresh ${ACRP_CMAKE_CONFIGURE_ARGS}"
-run_windows = "cmake --preset native-release --fresh %ACRP_CMAKE_CONFIGURE_ARGS%"
+run_windows = "cmake --preset native-release --fresh %ACRP_CMAKE_CONFIGURE_ARGS_WINDOWS% %ACRP_CMAKE_CONFIGURE_ARGS%"
 sources = ["CMakeLists.txt", "CMakePresets.json", "vcpkg.json", "**/*.cmake"]
 outputs = ["build/native-release/build.ninja"]
 

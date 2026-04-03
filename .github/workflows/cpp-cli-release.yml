@@ -48,6 +48,8 @@ jobs:
             arch: x86_64
             artifact_name: acrp_cli-linux-x86_64
             binary_suffix: linux-x86_64
+            vcpkg_cache_suffix: default
+            cmake_vcpkg_args: ""
             cmake_generator: Ninja
             build_type: Release
             cmake_build_type_arg: '-DCMAKE_BUILD_TYPE="Release"'
@@ -58,6 +60,8 @@ jobs:
             arch: arm64
             artifact_name: acrp_cli-macos-arm64
             binary_suffix: macos-arm64
+            vcpkg_cache_suffix: default
+            cmake_vcpkg_args: ""
             cmake_generator: Ninja
             build_type: Release
             cmake_build_type_arg: '-DCMAKE_BUILD_TYPE="Release"'
@@ -68,6 +72,8 @@ jobs:
             arch: x86_64
             artifact_name: acrp_cli-windows-x86_64
             binary_suffix: windows-x86_64
+            vcpkg_cache_suffix: x64-windows-static
+            cmake_vcpkg_args: "-DVCPKG_TARGET_TRIPLET=x64-windows-static"
             cmake_generator: "Visual Studio 17 2022"
             build_type: Release
             cmake_build_type_arg: ""
@@ -99,7 +105,7 @@ jobs:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
           # key includes vcpkg manifest, cmake config and modules — any change busts the cache
           key: >-
-            vcpkg-${{ runner.os }}-${{ matrix.arch }}-${{
+            vcpkg-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.vcpkg_cache_suffix }}-${{
               hashFiles(
                 'cpp/vcpkg.json',
                 'cpp/vcpkg-configuration.json',
@@ -109,18 +115,18 @@ jobs:
               )
             }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ matrix.arch }}-
+            vcpkg-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.vcpkg_cache_suffix }}-
 
       - name: Cache vcpkg downloads
         uses: actions/cache@v5
         with:
           path: ${{ env.VCPKG_DOWNLOADS }}
           key: >-
-            vcpkg-downloads-${{ runner.os }}-${{ matrix.arch }}-${{
+            vcpkg-downloads-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.vcpkg_cache_suffix }}-${{
               hashFiles('cpp/vcpkg.json', 'cpp/vcpkg-configuration.json')
             }}
           restore-keys: |
-            vcpkg-downloads-${{ runner.os }}-${{ matrix.arch }}-
+            vcpkg-downloads-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.vcpkg_cache_suffix }}-
 
       - name: Ensure vcpkg is available
         shell: bash
@@ -145,6 +151,7 @@ jobs:
             ${{ matrix.cmake_build_type_arg }} \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
             -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
+            ${{ matrix.cmake_vcpkg_args }} \
             ${{ matrix.cmake_extra_args }}
 
       - name: Build
