@@ -1,0 +1,214 @@
+name: Acrp-cli Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cpp-cli-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare release metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.release_meta.outputs.tag }}
+      version: ${{ steps.release_meta.outputs.version }}
+      release_title: ${{ steps.release_meta.outputs.release_title }}
+    steps:
+      - name: Derive release metadata from tag
+        id: release_meta
+        shell: bash
+        # set -e  : exit immediately if any command returns non-zero
+        # set -u  : treat references to unset variables as errors
+        # set -o pipefail : a pipeline fails if ANY command in it fails (not just the last)
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#v}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "release_title=acrp_cli ${tag}" >> "${GITHUB_OUTPUT}"
+
+  build:
+    name: Build ${{ matrix.name }}
+    needs: prepare
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            runs_on: ubuntu-24.04
+            arch: x86_64
+            artifact_name: acrp_cli-linux-x86_64
+            binary_suffix: linux-x86_64
+            cmake_generator: Ninja
+            build_type: Release
+            cmake_extra_args: "-DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14"
+            exe_ext: ""
+          - name: macos-arm64
+            runs_on: macos-15
+            arch: arm64
+            artifact_name: acrp_cli-macos-arm64
+            binary_suffix: macos-arm64
+            cmake_generator: Ninja
+            build_type: Release
+            cmake_extra_args: ""
+            exe_ext: ""
+          - name: windows-x86_64
+            runs_on: windows-2025
+            arch: x86_64
+            artifact_name: acrp_cli-windows-x86_64
+            binary_suffix: windows-x86_64
+            cmake_generator: "Visual Studio 17 2022"
+            build_type: Release
+            cmake_extra_args: "-A x64"
+            exe_ext: ".exe"
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}/vcpkg-binary-cache
+      CMAKE_BUILD_DIR: ${{ github.workspace }}/cpp/build/native-release
+      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/cpp/build/native-install
+      VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Create vcpkg binary cache directory
+        shell: bash
+        run: mkdir -p "${VCPKG_DEFAULT_BINARY_CACHE}"
+
+      - name: Cache vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          # key includes vcpkg manifest, cmake config and modules — any change busts the cache
+          key: >-
+            vcpkg-${{ runner.os }}-${{ matrix.arch }}-${{
+              hashFiles(
+                'cpp/vcpkg.json',
+                'cpp/vcpkg-configuration.json',
+                'cpp/CMakeLists.txt',
+                'cpp/CMakePresets.json',
+                'cpp/cmake/**'
+              )
+            }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ matrix.arch }}-
+
+      - name: Ensure vcpkg is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${VCPKG_INSTALLATION_ROOT:-}" ]; then
+            echo "::error::VCPKG_INSTALLATION_ROOT is not set"
+            exit 1
+          fi
+          toolchain="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
+          if [ ! -f "${toolchain}" ]; then
+            echo "::error::vcpkg toolchain file not found at ${toolchain}"
+            exit 1
+          fi
+
+      - name: Configure
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S cpp -B "${CMAKE_BUILD_DIR}" \
+            -G "${{ matrix.cmake_generator }}" \
+            -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
+            ${{ matrix.cmake_extra_args }}
+
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build "${CMAKE_BUILD_DIR}" \
+            --config "${{ matrix.build_type }}" \
+            --target acrp_cli \
+            --parallel
+
+      - name: Install
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --install "${CMAKE_BUILD_DIR}" --config "${{ matrix.build_type }}"
+
+      - name: Stage binary and smoke-test
+        shell: bash
+        run: |
+          set -euo pipefail
+          binary_name="acrp_cli-v${VERSION}-${{ matrix.binary_suffix }}${{ matrix.exe_ext }}"
+          mkdir -p dist
+          cp "${CMAKE_INSTALL_PREFIX}/bin/acrp_cli${{ matrix.exe_ext }}" "dist/${binary_name}"
+          if [ -z "${{ matrix.exe_ext }}" ]; then
+            chmod +x "dist/${binary_name}"
+          fi
+          "./dist/${binary_name}" --help
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    name: Publish GitHub release
+    needs:
+      - prepare
+      - build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v8
+        with:
+          pattern: acrp_cli-*
+          path: dist
+          merge-multiple: true
+
+      - name: Inspect downloaded assets
+        shell: bash
+        run: ls -la dist
+
+      - name: Create release if missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_TITLE: ${{ needs.prepare.outputs.release_title }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # --verify-tag : refuses to create a release unless the tag already exists on the
+          #   remote, preventing orphaned releases from local-only or mistyped tags
+          # --repo : explicitly targets the correct repository so the command works
+          #   correctly even when triggered from a fork
+          if ! gh release view "${TAG}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release create "${TAG}" \
+              --repo "${{ github.repository }}" \
+              --verify-tag \
+              --title "${RELEASE_TITLE}" \
+              --generate-notes
+          fi
+
+      - name: Upload binaries to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release upload "${TAG}" dist/* \
+            --repo "${{ github.repository }}" \
+            --clobber
