@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "strict": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "moduleDetection": "force",
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "skipLibCheck": true,
-    "lib": ["ES2022", "DOM", "WebWorker"]
+    "lib": ["ESNext", "DOM", "WebWorker"]
   },
   "include": ["src"]
 }

@@ -103,3 +103,5 @@ function normalizeParseCarResult(json: {
 
   export * from './types.js'
   export * from './module.js'
+  export * from './workerClient.js'
+  export type * from './workerTypes.js'

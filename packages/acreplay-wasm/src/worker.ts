@@ -1,55 +1,48 @@
 import {createReplayParser} from './index.js'
 import type {WasmModuleFactory} from './module.js'
-
-type WorkerRequest =|{
-  id: number;
-  type: 'init'
-}
-|{
-  id: number;
-  type: 'inspectReplay';
-  fileBytes: ArrayBuffer
-}
-|{
-  id: number;
-  type: 'parseCar';
-  fileBytes: ArrayBuffer;
-  carIndex: number
-}
+import {getResponseTransferList} from './workerClient.js'
+import type {ReplayWorkerRequest, ReplayWorkerResponse} from './workerTypes.js'
 
 let parserPromise: ReturnType<typeof createReplayParser>|null = null
 
 export function attachWorkerHandler(factory: WasmModuleFactory): void {
-  self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
+  self.addEventListener('message', async (event: MessageEvent<ReplayWorkerRequest>) => {
       const message = event.data
 
       try {
         if (message.type === 'init') {
-        parserPromise = createReplayParser(factory)
+        parserPromise ??= createReplayParser(factory)
         await parserPromise
-        self.postMessage({id: message.id, ok: true})
+        const response: ReplayWorkerResponse = {id: message.id, ok: true, type: 'init'}
+        self.postMessage(response)
         return
       }
 
       if (parserPromise == null) {
-        throw new Error('Worker is not initialized')
+        parserPromise = createReplayParser(factory)
       }
 
       const parser = await parserPromise
       if (message.type === 'inspectReplay') {
         const result = await parser.inspectReplay(message.fileBytes)
-        self.postMessage({id: message.id, ok: true, result})
+        const response: ReplayWorkerResponse = {id: message.id, ok: true, type: 'inspectReplay', result}
+        self.postMessage(response)
         return
       }
 
       const result = await parser.parseCar(message.fileBytes, message.carIndex)
-      self.postMessage({id: message.id, ok: true, result})
+      const response: ReplayWorkerResponse = {id: message.id, ok: true, type: 'parseCar', result}
+      self.postMessage(response, getResponseTransferList(response))
     } catch (error) {
-      self.postMessage({
+      const response: ReplayWorkerResponse = {
         id: message.id,
         ok: false,
+        type: message.type,
         error: error instanceof Error ? error.message : String(error),
-      })
+      }
+      self.postMessage(response)
     }
-  }
+  })
 }
+
+export type * from './workerTypes.js'
