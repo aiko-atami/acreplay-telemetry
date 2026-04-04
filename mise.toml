@@ -11,12 +11,7 @@ CMAKE_EXPORT_COMPILE_COMMANDS = "1"
 [tools]
 node = "24"
 pnpm = "10"
-
-# ── Setup ─────────────────────────────────────────────────────────────
-
-[tasks."hooks:install"]
-description = "Install repository-managed git hooks"
-run = "git config core.hooksPath .githooks"
+vp = "latest"
 
 # ── C++ · Configure ──────────────────────────────────────────────────
 
@@ -121,6 +116,11 @@ run = "emcmake cmake -S . -B build/wasm -G Ninja && cmake --build build/wasm"
 description = "Wasm end-to-end smoke test"
 run = "node scripts/wasm-e2e-smoke.js"
 depends = ["build:wasm", "build:ts"]
+
+[tasks."smoke:worker"]
+description = "Worker API smoke test"
+run = "node scripts/worker-api-smoke.js"
+depends = ["build:ts"]
 
 # ── CI ───────────────────────────────────────────────────────────────
 

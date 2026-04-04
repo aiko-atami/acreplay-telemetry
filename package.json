@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "@typescript/native-preview": "7.0.0-dev.20260331.1"
+    "@typescript/native-preview": "catalog:"
   },
-  "scripts": {}
+  "scripts": {},
+  "packageManager": "pnpm@10.33.0"
 }

@@ -1,4 +1,9 @@
 minimumReleaseAge: 1440
+
 packages:
   - "packages/*"
   - "apps/*"
+
+catalog:
+  "@typescript/native-preview": "7.0.0-dev.20260331.1"
+  vite: "^7.1.12"
