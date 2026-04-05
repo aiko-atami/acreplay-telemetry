@@ -1,8 +1,13 @@
 {
   "name": "acreplay-telemetry",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "changeset": "changeset",
+    "bump": "changeset version",
+    "release": "pnpm build && changeset publish"
+  },
   "devDependencies": {
+    "@changesets/cli": "^2.30.0",
     "@typescript/native-preview": "catalog:"
   },
   "packageManager": "pnpm@10.33.0"
