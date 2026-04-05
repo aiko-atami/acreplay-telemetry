@@ -6,8 +6,19 @@ type WorkerLike = Pick<
   "addEventListener" | "removeEventListener" | "postMessage" | "terminate"
 >;
 
+/**
+ * Extends {@link WasmReplayParser} with lifecycle methods for the underlying Web Worker.
+ *
+ * Obtain an instance via {@link createReplayWorkerClient}.
+ */
 export type WasmReplayWorkerClient = WasmReplayParser & {
+  /**
+   * Sends the `init` message to the worker and waits for the wasm module to load.
+   * Subsequent calls to `inspectReplay` / `parseCar` call this automatically,
+   * but calling it eagerly lets you surface load errors at a predictable time.
+   */
   init(): Promise<void>;
+  /** Rejects all pending requests and terminates the underlying worker. */
   terminate(): void;
 };
 
@@ -31,6 +42,24 @@ function getResponseTransferList(response: ReplayWorkerResponse): Transferable[]
   return response.result.lapPacks.map((lap) => lap.bytes.buffer);
 }
 
+/**
+ * Creates a {@link WasmReplayWorkerClient} that proxies calls to a Web Worker
+ * running {@link attachWorkerHandler}.
+ *
+ * File bytes are transferred (zero-copy) to the worker via `postMessage` transferables.
+ * The parsed result bytes are transferred back in the same way.
+ *
+ * @param worker - Any `Worker`-like object with `postMessage`, `addEventListener`,
+ *   `removeEventListener`, and `terminate`. Pass a real `Worker` or a test double.
+ * @returns A client that implements {@link WasmReplayParser} plus `init()` / `terminate()`.
+ *
+ * @example
+ * ```ts
+ * const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+ * const client = createReplayWorkerClient(worker);
+ * const manifest = await client.inspectReplay(fileBytes);
+ * ```
+ */
 export function createReplayWorkerClient(worker: WorkerLike): WasmReplayWorkerClient {
   let nextRequestId = 1;
   const pending = new Map<number, PendingRequest>();

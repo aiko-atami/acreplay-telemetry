@@ -75,8 +75,14 @@ description = "Build native-strict (warnings as errors)"
 dir = "cpp"
 run = "cmake --workflow --preset native-strict"
 sources = [
-  "CMakeLists.txt", "CMakePresets.json", "vcpkg.json",
-  "**/*.cmake", "**/*.cpp", "**/*.hpp", "**/*.cc", "**/*.hh",
+  "CMakeLists.txt",
+  "CMakePresets.json",
+  "vcpkg.json",
+  "**/*.cmake",
+  "**/*.cpp",
+  "**/*.hpp",
+  "**/*.cc",
+  "**/*.hh",
 ]
 outputs = ["build/native-strict/build.ninja"]
 

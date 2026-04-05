@@ -1,9 +1,9 @@
 {
   "name": "acreplay-telemetry",
   "private": true,
+  "scripts": {},
   "devDependencies": {
     "@typescript/native-preview": "catalog:"
   },
-  "scripts": {},
   "packageManager": "pnpm@10.33.0"
 }

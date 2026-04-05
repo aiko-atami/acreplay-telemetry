@@ -3,6 +3,7 @@
 Always run `clang-format -i` and `clang-tidy --fix` after generating C++ code. Ensure all code matches the rules in .clang-format
 
 Invariants:
+
 - Most parser, lap segmentation, manifest building, and pack writing still live in `cpp/acrp_core/src/api.cpp`. Do not assume the behavior is split into smaller translation units.
 - The canonical real replay fixture is `cpp/tests/fixtures/example.acreplay`. Trust fixture-backed tests over prose docs when they disagree.
 - `inspectReplay(...)` is intentionally per-car and currently returns `buildManifest(..., 0)`. Do not turn it into a replay-wide summary unless explicitly asked.
@@ -13,6 +14,7 @@ Invariants:
 - `distance_m` in pack v1 is cumulative lap distance computed from X/Z deltas only. Treat changes here as a telemetry-schema change, not a refactor.
 
 Pack and channel contracts:
+
 - `LapTelemetryPackV1` is fixed at magic `ACTL`, version `1`, `headerBytes = 36`, `descriptorBytes = 16`. `ChannelDescriptorV1::byteOffset` is relative to `dataOffset`.
 - `cpp/tests/smoke.cpp` is the executable contract for required channels, flags, monotonic `distance_m` / `time_ms`, and optional CSP channel `64 clutch_raw`.
 - `EXT_PERCAR` only has trusted fixed record sizes for v6/v7. Pack v1 currently surfaces only `clutch_raw`; the rest of CSP extra fields are intentionally left unresolved.
@@ -20,6 +22,7 @@ Pack and channel contracts:
 - Pack layout changes must be mirrored in `packages/actelemetry/src/readLapPack.ts` and `packages/actelemetry/src/validateLapPack.ts`.
 
 Wasm and ABI contracts:
+
 - Before changing the wasm ABI, inspect `cpp/acrp_wasm/exports.cpp`, `packages/acreplay-wasm/src/module.ts`, and `packages/acreplay-wasm/src/index.ts`.
 - `cpp/tests/wasm_abi.cpp` compiles `cpp/acrp_wasm/exports.cpp` natively with `ACRP_WASM_NO_MAIN`; keep non-Emscripten fallbacks working when editing exports.
 - The wasm boundary is intentionally narrow: JSON for manifest/result structs, base64 for lap-pack bytes, and buffer ownership released through `acrp_free_buffer()`.
@@ -28,4 +31,5 @@ Wasm and ABI contracts:
 - If a wasm build hits Emscripten cache issues in this repo, retry with `EM_CACHE=/tmp/emscripten-cache`.
 
 CSV export contract:
+
 - `acrp_cli` and `acrp::exportCsvFiles(...)` define the supported CSV export surface. Do not change CSV behavior as an incidental side effect of actelemetry work.

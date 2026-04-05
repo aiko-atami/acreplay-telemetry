@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "acrp/channel_ids.hpp"
 #include "acrp/csv_export.hpp"
 #include "acrp/pack_format.hpp"
 #include "acrp/replay_types.hpp"
@@ -618,9 +619,6 @@ std::vector<std::byte> buildLapPack(const ParsedCarData& car, const LapSlice& la
   static constexpr std::uint16_t kPackVersion = 1;
   static constexpr std::uint16_t kPackHeaderBytes = 36;
   static constexpr std::uint16_t kPackDescriptorBytes = 16;
-  static constexpr std::uint16_t kFlagHasCsp = 1u << 0;
-  static constexpr std::uint16_t kFlagIsComplete = 1u << 1;
-  static constexpr std::uint16_t kFlagIsValid = 1u << 2;
 
   const auto sampleCount = static_cast<std::uint32_t>(lap.endFrame - lap.beginFrame);
   std::vector<float> distance;
@@ -641,6 +639,9 @@ std::vector<std::byte> buildLapPack(const ParsedCarData& car, const LapSlice& la
   }
 
   std::vector<ChannelPayload> channels;
+
+  // Helper to cast ChannelId enum to the uint16_t expected by ChannelPayload.
+  const auto ch = [](ChannelId id) noexcept { return static_cast<std::uint16_t>(id); };
 
   const auto addFloatChannel = [&](std::uint16_t channelId, const auto& valueAtFrame) {
     ChannelPayload channel{
@@ -681,134 +682,134 @@ std::vector<std::byte> buildLapPack(const ParsedCarData& car, const LapSlice& la
     channels.push_back(std::move(channel));
   };
 
-  addFloatChannel(1, [&](std::size_t frameIndex) { return distance[frameIndex - lap.beginFrame]; });
-  addFloatChannel(2, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::distance_m), [&](std::size_t frameIndex) { return distance[frameIndex - lap.beginFrame]; });
+  addFloatChannel(ch(ChannelId::time_ms), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].currentLapTime);
   });
-  addFloatChannel(3, [&](std::size_t frameIndex) { return car.frames[frameIndex].position.x; });
-  addFloatChannel(4, [&](std::size_t frameIndex) { return car.frames[frameIndex].position.y; });
-  addFloatChannel(5, [&](std::size_t frameIndex) { return car.frames[frameIndex].position.z; });
-  addFloatChannel(6, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::pos_x), [&](std::size_t frameIndex) { return car.frames[frameIndex].position.x; });
+  addFloatChannel(ch(ChannelId::pos_y), [&](std::size_t frameIndex) { return car.frames[frameIndex].position.y; });
+  addFloatChannel(ch(ChannelId::pos_z), [&](std::size_t frameIndex) { return car.frames[frameIndex].position.z; });
+  addFloatChannel(ch(ChannelId::yaw_rad), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].rotation.y);
   });
-  addFloatChannel(7, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::rot_x_rad), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].rotation.x);
   });
-  addFloatChannel(8, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::rot_y_rad), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].rotation.y);
   });
-  addFloatChannel(9, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::rot_z_rad), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].rotation.z);
   });
-  addFloatChannel(10, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::speed_kmh), [&](std::size_t frameIndex) {
     const auto& velocity = car.frames[frameIndex].velocity;
     const auto vx = static_cast<float>(velocity.x);
     const auto vy = static_cast<float>(velocity.y);
     const auto vz = static_cast<float>(velocity.z);
     return std::sqrt((vx * vx) + (vy * vy) + (vz * vz)) * 3.6f;
   });
-  addFloatChannel(11, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::vel_x_mps), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].velocity.x);
   });
-  addFloatChannel(12, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::vel_y_mps), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].velocity.y);
   });
-  addFloatChannel(13, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::vel_z_mps), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].velocity.z);
   });
-  addU8Channel(14, [&](std::size_t frameIndex) { return car.frames[frameIndex].gas; });
-  addU8Channel(15, [&](std::size_t frameIndex) { return car.frames[frameIndex].brake; });
-  addFloatChannel(16, [&](std::size_t frameIndex) {
+  addU8Channel(ch(ChannelId::throttle_raw), [&](std::size_t frameIndex) { return car.frames[frameIndex].gas; });
+  addU8Channel(ch(ChannelId::brake_raw), [&](std::size_t frameIndex) { return car.frames[frameIndex].brake; });
+  addFloatChannel(ch(ChannelId::steer_deg), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].steerAngle);
   });
-  addI8Channel(17, [&](std::size_t frameIndex) {
+  addI8Channel(ch(ChannelId::gear), [&](std::size_t frameIndex) {
     return static_cast<std::int8_t>(static_cast<int>(car.frames[frameIndex].gear) - 1);
   });
   addFloatChannel(
-      18, [&](std::size_t frameIndex) { return static_cast<float>(car.frames[frameIndex].rpm); });
-  addU8Channel(19, [&](std::size_t frameIndex) {
+      ch(ChannelId::rpm), [&](std::size_t frameIndex) { return static_cast<float>(car.frames[frameIndex].rpm); });
+  addU8Channel(ch(ChannelId::coast), [&](std::size_t frameIndex) {
     const auto& frame = car.frames[frameIndex];
     return static_cast<std::uint8_t>(frame.gas == 0 && frame.brake == 0 ? 1 : 0);
   });
-  addU8Channel(20, [&](std::size_t frameIndex) { return car.frames[frameIndex].fuel; });
-  addU8Channel(21, [&](std::size_t frameIndex) { return car.frames[frameIndex].fuelPerLap; });
-  addU8Channel(22, [&](std::size_t frameIndex) { return car.frames[frameIndex].boost; });
-  addU8Channel(23, [&](std::size_t frameIndex) { return car.frames[frameIndex].engineHealth; });
-  addU8Channel(24, [&](std::size_t frameIndex) {
+  addU8Channel(ch(ChannelId::fuel_raw), [&](std::size_t frameIndex) { return car.frames[frameIndex].fuel; });
+  addU8Channel(ch(ChannelId::fuel_per_lap_raw), [&](std::size_t frameIndex) { return car.frames[frameIndex].fuelPerLap; });
+  addU8Channel(ch(ChannelId::boost_raw), [&](std::size_t frameIndex) { return car.frames[frameIndex].boost; });
+  addU8Channel(ch(ChannelId::engine_health_raw), [&](std::size_t frameIndex) { return car.frames[frameIndex].engineHealth; });
+  addU8Channel(ch(ChannelId::gearbox_being_damaged), [&](std::size_t frameIndex) {
     return static_cast<std::uint8_t>((car.frames[frameIndex].status >> 9) & 0x1);
   });
-  addFloatChannel(25, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::drivetrain_speed), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].drivetrainSpeed);
   });
-  addFloatChannel(32, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_ang_vel_fl), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].wheelAngularVelocity[0]);
   });
-  addFloatChannel(33, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_ang_vel_fr), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].wheelAngularVelocity[1]);
   });
-  addFloatChannel(34, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_ang_vel_rl), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].wheelAngularVelocity[2]);
   });
-  addFloatChannel(35, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_ang_vel_rr), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].wheelAngularVelocity[3]);
   });
-  addFloatChannel(36, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_slip_ratio_fl), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].slipRatio[0]);
   });
-  addFloatChannel(37, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_slip_ratio_fr), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].slipRatio[1]);
   });
-  addFloatChannel(38, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_slip_ratio_rl), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].slipRatio[2]);
   });
-  addFloatChannel(39, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_slip_ratio_rr), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].slipRatio[3]);
   });
-  addFloatChannel(40, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_nd_slip_fl), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].ndSlip[0]);
   });
-  addFloatChannel(41, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_nd_slip_fr), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].ndSlip[1]);
   });
-  addFloatChannel(42, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_nd_slip_rl), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].ndSlip[2]);
   });
-  addFloatChannel(43, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_nd_slip_rr), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].ndSlip[3]);
   });
-  addFloatChannel(44, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_load_fl_n), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].load[0]);
   });
-  addFloatChannel(45, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_load_fr_n), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].load[1]);
   });
-  addFloatChannel(46, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_load_rl_n), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].load[2]);
   });
-  addFloatChannel(47, [&](std::size_t frameIndex) {
+  addFloatChannel(ch(ChannelId::wheel_load_rr_n), [&](std::size_t frameIndex) {
     return static_cast<float>(car.frames[frameIndex].load[3]);
   });
 
   bool hasCsp = false;
   if (car.extraFramesV6.has_value()) {
     hasCsp = true;
-    addU8Channel(64,
+    addU8Channel(ch(ChannelId::clutch_raw),
                  [&](std::size_t frameIndex) { return (*car.extraFramesV6)[frameIndex].clutch; });
   } else if (car.extraFramesV7.has_value()) {
     hasCsp = true;
-    addU8Channel(64,
+    addU8Channel(ch(ChannelId::clutch_raw),
                  [&](std::size_t frameIndex) { return (*car.extraFramesV7)[frameIndex].clutch; });
   }
 
   std::uint16_t flags = 0;
   if (hasCsp) {
-    flags |= kFlagHasCsp;
+    flags |= kPackFlagHasCsp;
   }
   if (lap.isComplete) {
-    flags |= kFlagIsComplete;
+    flags |= kPackFlagIsComplete;
   }
   if (lap.isValid) {
-    flags |= kFlagIsValid;
+    flags |= kPackFlagIsValid;
   }
 
   const auto descriptorsOffset = static_cast<std::uint32_t>(kPackHeaderBytes);

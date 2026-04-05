@@ -1,3 +1,12 @@
+/**
+ * Validates the structure of a raw `LapTelemetryPackV1` binary buffer.
+ *
+ * Checks magic bytes (`"ACTL"`), version (`1`), fixed header/descriptor sizes,
+ * descriptor-table offset alignment, and that the data block fits within the buffer.
+ *
+ * @param buffer - Raw `ArrayBuffer` to validate.
+ * @throws {Error} With a descriptive message if any structural invariant is violated.
+ */
 export function validateLapPack(buffer: ArrayBuffer): void {
   const view = new DataView(buffer);
   if (buffer.byteLength < 36) {

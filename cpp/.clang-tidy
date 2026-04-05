@@ -29,8 +29,8 @@ WarningsAsErrors: >
   -bugprone-easily-swappable-parameters,
   -bugprone-exception-escape
 InheritParentConfig: false
-HeaderFilterRegex: '(^|.*/)(acrp_.*/|include/acrp/|tests/)'
+HeaderFilterRegex: "(^|.*/)(acrp_.*/|include/acrp/|tests/)"
 FormatStyle: file
 CheckOptions:
   - key: readability-implicit-bool-conversion.AllowIntegerConditions
-    value: '1'
+    value: "1"

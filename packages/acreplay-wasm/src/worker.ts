@@ -5,6 +5,24 @@ import type { ReplayWorkerRequest, ReplayWorkerResponse } from "./workerTypes.js
 
 let parserPromise: ReturnType<typeof createReplayParser> | null = null;
 
+/**
+ * Attaches the replay parser message handler to the current worker scope (`self`).
+ *
+ * Call this once at the top level of your worker entry file. The handler responds to
+ * `init`, `inspectReplay`, and `parseCar` messages from {@link createReplayWorkerClient}.
+ * The wasm module is loaded lazily on the first request (or eagerly on `init`).
+ *
+ * @param factory - A {@link WasmModuleFactory} that loads and initialises the wasm module.
+ *
+ * @example
+ * ```ts
+ * // worker.ts
+ * import { attachWorkerHandler, createEmscriptenModuleFactory } from '@acreplay/wasm';
+ * import createModule from './acrp.js';
+ *
+ * attachWorkerHandler(createEmscriptenModuleFactory(createModule));
+ * ```
+ */
 export function attachWorkerHandler(factory: WasmModuleFactory): void {
   self.addEventListener("message", async (event: MessageEvent<ReplayWorkerRequest>) => {
     const message = event.data;

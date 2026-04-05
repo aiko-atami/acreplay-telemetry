@@ -21,12 +21,24 @@ type NativeModule = {
   UTF8ToString(ptr: number, len: number): string;
 };
 
+/** Async factory that instantiates the compiled WebAssembly module. */
 export type WasmModuleFactory = () => Promise<NativeModule>;
 
+/**
+ * Emscripten-generated module constructor type.
+ * Accepts an optional `locateFile` hook for customising where the `.wasm` file is fetched from.
+ */
 export type EmscriptenModuleFactory = (moduleArg?: {
   locateFile?(path: string, scriptDirectory: string): string;
 }) => Promise<NativeModule>;
 
+/**
+ * Wraps an Emscripten-generated module constructor into a {@link WasmModuleFactory}.
+ *
+ * @param moduleFactory - The raw Emscripten factory (default export of the generated JS glue).
+ * @param options - Optional overrides, e.g. a custom `locateFile` to control `.wasm` URL resolution.
+ * @returns A zero-argument factory that resolves to the native module.
+ */
 export function createEmscriptenModuleFactory(
   moduleFactory: EmscriptenModuleFactory,
   options: {
@@ -36,6 +48,12 @@ export function createEmscriptenModuleFactory(
   return () => moduleFactory({ locateFile: options.locateFile });
 }
 
+/**
+ * Instantiates the WebAssembly module using the provided factory.
+ *
+ * @param factory - A {@link WasmModuleFactory} returned by {@link createEmscriptenModuleFactory}.
+ * @returns The loaded native module ready for use.
+ */
 export async function loadNativeModule(factory: WasmModuleFactory): Promise<NativeModule> {
   return factory();
 }

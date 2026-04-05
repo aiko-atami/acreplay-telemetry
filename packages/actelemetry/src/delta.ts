@@ -2,6 +2,18 @@ import { channelIds } from "./channelIds.js";
 import { findNearestSampleByDistance } from "./nearestSample.js";
 import type { LapTelemetryPackView } from "./types.js";
 
+/**
+ * Builds a per-sample delta-time array between two laps aligned by track distance.
+ *
+ * For each sample `i` in `comp`, finds the closest sample in `base` by distance,
+ * then computes `compTime[i] − baseTime[closestBaseIndex]`.
+ * Positive values mean `comp` is slower than `base` at that point on track.
+ *
+ * @param base - The reference lap (e.g. personal best).
+ * @param comp - The lap being compared against the reference.
+ * @returns `Float32Array` of length `comp.header.sampleCount` with delta times in milliseconds.
+ * @throws {Error} If either pack is missing `distance_m` or `time_ms` float channels.
+ */
 export function buildDeltaTime(
   base: LapTelemetryPackView,
   comp: LapTelemetryPackView,

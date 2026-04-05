@@ -50,6 +50,25 @@ function normalizeParseCarResult(json: {
   };
 }
 
+/**
+ * Creates a {@link WasmReplayParser} that runs directly on the calling thread.
+ *
+ * For use cases where a Web Worker is not available or needed (e.g. Node.js scripts,
+ * tests). For browser apps, prefer {@link createReplayWorkerClient} to avoid blocking
+ * the main thread during file parsing.
+ *
+ * @param factory - A {@link WasmModuleFactory} returned by {@link createEmscriptenModuleFactory}.
+ * @returns An initialised parser instance.
+ *
+ * @example
+ * ```ts
+ * import createModule from './acrp.js';
+ * import { createReplayParser, createEmscriptenModuleFactory } from '@acreplay/wasm';
+ *
+ * const parser = await createReplayParser(createEmscriptenModuleFactory(createModule));
+ * const manifest = await parser.inspectReplay(fileBytes);
+ * ```
+ */
 export async function createReplayParser(factory: WasmModuleFactory): Promise<WasmReplayParser> {
   const module = await loadNativeModule(factory);
 

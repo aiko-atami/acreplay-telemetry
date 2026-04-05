@@ -1,14 +1,14 @@
-import { spawn } from 'node:child_process';
-import { readFile, readdir } from 'node:fs/promises';
-import { dirname, extname, join, relative, resolve } from 'node:path';
-import process from 'node:process';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { spawn } from "node:child_process";
+import { readFile, readdir } from "node:fs/promises";
+import { dirname, extname, join, relative, resolve } from "node:path";
+import process from "node:process";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(scriptDir, '..');
-const cppRoot = resolve(repoRoot, 'cpp');
-const compileCommandsPath = resolve(cppRoot, 'compile_commands.json');
-const kTrackedExtensions = new Set(['.c', '.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx']);
+const repoRoot = resolve(scriptDir, "..");
+const cppRoot = resolve(repoRoot, "cpp");
+const compileCommandsPath = resolve(cppRoot, "compile_commands.json");
+const kTrackedExtensions = new Set([".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx"]);
 const kQuietPeriodMs = 200;
 const kDiagnosticsTimeoutMs = 30_000;
 
@@ -21,7 +21,7 @@ async function listCppFiles(dir) {
   const files = [];
 
   for (const entry of entries) {
-    if (entry.name === 'build' || entry.name === '.git') {
+    if (entry.name === "build" || entry.name === ".git") {
       continue;
     }
 
@@ -42,9 +42,13 @@ async function listCppFiles(dir) {
 function formatDiagnostic(filePath, diagnostic) {
   const line = (diagnostic.range?.start?.line ?? 0) + 1;
   const column = (diagnostic.range?.start?.character ?? 0) + 1;
-  const severity = diagnostic.severity === 1 ? 'error' : 'warning';
-  const code = diagnostic.code === undefined ? '' : ` ${String(diagnostic.code)}`;
-  const source = diagnostic.source ? ` [${diagnostic.source}${code}]` : code ? ` [${code.trim()}]` : '';
+  const severity = diagnostic.severity === 1 ? "error" : "warning";
+  const code = diagnostic.code === undefined ? "" : ` ${String(diagnostic.code)}`;
+  const source = diagnostic.source
+    ? ` [${diagnostic.source}${code}]`
+    : code
+      ? ` [${code.trim()}]`
+      : "";
 
   return `${relative(repoRoot, filePath)}:${line}:${column}: ${severity}${source} ${diagnostic.message}`;
 }
@@ -55,33 +59,28 @@ class ClangdClient {
     this.pendingRequests = new Map();
     this.pendingDiagnostics = new Map();
     this.stdoutBuffer = Buffer.alloc(0);
-    this.stderrBuffer = '';
+    this.stderrBuffer = "";
 
     this.process = spawn(
-      'clangd',
-      [
-        '--enable-config',
-        '--compile-commands-dir=cpp',
-        '--background-index=false',
-        '--log=error',
-      ],
+      "clangd",
+      ["--enable-config", "--compile-commands-dir=cpp", "--background-index=false", "--log=error"],
       {
         cwd: repoRoot,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ["pipe", "pipe", "pipe"],
       },
     );
 
-    this.process.stdout.on('data', (chunk) => {
+    this.process.stdout.on("data", (chunk) => {
       this.stdoutBuffer = Buffer.concat([this.stdoutBuffer, chunk]);
       this.drainMessages();
     });
 
-    this.process.stderr.on('data', (chunk) => {
-      this.stderrBuffer += chunk.toString('utf8');
+    this.process.stderr.on("data", (chunk) => {
+      this.stderrBuffer += chunk.toString("utf8");
     });
 
-    this.process.on('exit', (code, signal) => {
-      const reason = signal ? `signal ${signal}` : `exit code ${code ?? 'unknown'}`;
+    this.process.on("exit", (code, signal) => {
+      const reason = signal ? `signal ${signal}` : `exit code ${code ?? "unknown"}`;
       for (const { reject } of this.pendingRequests.values()) {
         reject(new Error(`clangd exited unexpectedly with ${reason}`));
       }
@@ -98,12 +97,12 @@ class ClangdClient {
 
   drainMessages() {
     while (true) {
-      const headerEnd = this.stdoutBuffer.indexOf('\r\n\r\n');
+      const headerEnd = this.stdoutBuffer.indexOf("\r\n\r\n");
       if (headerEnd === -1) {
         return;
       }
 
-      const headerText = this.stdoutBuffer.subarray(0, headerEnd).toString('utf8');
+      const headerText = this.stdoutBuffer.subarray(0, headerEnd).toString("utf8");
       const lengthMatch = /^Content-Length: (\d+)$/im.exec(headerText);
       if (lengthMatch === null) {
         throw new Error(`clangd sent a response without Content-Length:\n${headerText}`);
@@ -115,7 +114,7 @@ class ClangdClient {
         return;
       }
 
-      const body = this.stdoutBuffer.subarray(headerEnd + 4, messageEnd).toString('utf8');
+      const body = this.stdoutBuffer.subarray(headerEnd + 4, messageEnd).toString("utf8");
       this.stdoutBuffer = this.stdoutBuffer.subarray(messageEnd);
       this.handleMessage(JSON.parse(body));
     }
@@ -138,12 +137,12 @@ class ClangdClient {
       return;
     }
 
-    if (message.method !== 'textDocument/publishDiagnostics') {
+    if (message.method !== "textDocument/publishDiagnostics") {
       return;
     }
 
     const uri = message.params?.uri;
-    if (typeof uri !== 'string') {
+    if (typeof uri !== "string") {
       return;
     }
 
@@ -163,7 +162,9 @@ class ClangdClient {
 
   send(message) {
     const payload = JSON.stringify(message);
-    this.process.stdin.write(`Content-Length: ${Buffer.byteLength(payload, 'utf8')}\r\n\r\n${payload}`);
+    this.process.stdin.write(
+      `Content-Length: ${Buffer.byteLength(payload, "utf8")}\r\n\r\n${payload}`,
+    );
   }
 
   request(method, params) {
@@ -171,16 +172,16 @@ class ClangdClient {
     const promise = new Promise((resolve, reject) => {
       this.pendingRequests.set(id, { resolve, reject });
     });
-    this.send({ jsonrpc: '2.0', id, method, params });
+    this.send({ jsonrpc: "2.0", id, method, params });
     return promise;
   }
 
   notify(method, params) {
-    this.send({ jsonrpc: '2.0', method, params });
+    this.send({ jsonrpc: "2.0", method, params });
   }
 
   async initialize() {
-    await this.request('initialize', {
+    await this.request("initialize", {
       processId: process.pid,
       rootUri: pathToFileURL(repoRoot).href,
       capabilities: {
@@ -192,26 +193,28 @@ class ClangdClient {
         },
       },
       clientInfo: {
-        name: 'acreplay-clangd-lint',
+        name: "acreplay-clangd-lint",
       },
       workspaceFolders: [
         {
           uri: pathToFileURL(repoRoot).href,
-          name: 'acreplay-parser',
+          name: "acreplay-parser",
         },
       ],
     });
-    this.notify('initialized', {});
+    this.notify("initialized", {});
   }
 
   async collectDiagnostics(filePath) {
     const uri = pathToFileURL(filePath).href;
-    const text = await readFile(filePath, 'utf8');
+    const text = await readFile(filePath, "utf8");
 
     const diagnosticsPromise = new Promise((resolvePromise, rejectPromise) => {
       const timeoutId = setTimeout(() => {
         this.pendingDiagnostics.delete(uri);
-        rejectPromise(new Error(`Timed out waiting for clangd diagnostics for ${relative(repoRoot, filePath)}`));
+        rejectPromise(
+          new Error(`Timed out waiting for clangd diagnostics for ${relative(repoRoot, filePath)}`),
+        );
       }, kDiagnosticsTimeoutMs);
 
       this.pendingDiagnostics.set(uri, {
@@ -223,10 +226,10 @@ class ClangdClient {
       });
     });
 
-    this.notify('textDocument/didOpen', {
+    this.notify("textDocument/didOpen", {
       textDocument: {
         uri,
-        languageId: 'cpp',
+        languageId: "cpp",
         version: 1,
         text,
       },
@@ -235,7 +238,7 @@ class ClangdClient {
     try {
       return await diagnosticsPromise;
     } finally {
-      this.notify('textDocument/didClose', {
+      this.notify("textDocument/didClose", {
         textDocument: { uri },
       });
     }
@@ -243,17 +246,19 @@ class ClangdClient {
 
   async shutdown() {
     try {
-      await this.request('shutdown', null);
+      await this.request("shutdown", null);
     } finally {
-      this.notify('exit');
+      this.notify("exit");
     }
   }
 }
 
 try {
-  await readFile(compileCommandsPath, 'utf8');
+  await readFile(compileCommandsPath, "utf8");
 } catch {
-  logError('cpp/compile_commands.json is missing. Run `cmake --preset native-debug --fresh` in `cpp/` first.');
+  logError(
+    "cpp/compile_commands.json is missing. Run `cmake --preset native-debug --fresh` in `cpp/` first.",
+  );
   process.exit(2);
 }
 
@@ -268,7 +273,7 @@ try {
     const diagnostics = await client.collectDiagnostics(filePath);
     const relevantDiagnostics = diagnostics.filter((diagnostic) => {
       const severity = diagnostic.severity ?? 2;
-      return severity <= 2 && diagnostic.source !== 'clang-tidy';
+      return severity <= 2 && diagnostic.source !== "clang-tidy";
     });
 
     for (const diagnostic of relevantDiagnostics) {

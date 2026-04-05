@@ -1,20 +1,20 @@
 CompileFlags:
-    CompilationDatabase: Ancestors
+  CompilationDatabase: Ancestors
 
 Index:
-    Background: Build
-    StandardLibrary: true
+  Background: Build
+  StandardLibrary: true
 
 Diagnostics:
-    UnusedIncludes: Strict
-    MissingIncludes: Strict
-    Includes:
-        AnalyzeAngledIncludes: true
-    ClangTidy:
-        FastCheckFilter: Strict
+  UnusedIncludes: Strict
+  MissingIncludes: Strict
+  Includes:
+    AnalyzeAngledIncludes: true
+  ClangTidy:
+    FastCheckFilter: Strict
 
 Completion:
-    HeaderInsertion: IWYU
+  HeaderInsertion: IWYU
 
 Hover:
-    ShowAKA: true
+  ShowAKA: true
