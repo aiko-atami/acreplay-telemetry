@@ -4,15 +4,14 @@ import {
 import { createEmscriptenModuleFactory } from "@aikotami/acreplay-wasm";
 
 // @ts-expect-error — Emscripten glue JS has no types
-import createModule from "../../../../cpp/build/wasm/acrp_wasm/acrp_wasm.js";
+import createModule from "@aikotami/acreplay-wasm/wasm";
+import wasmUrl from "@aikotami/acreplay-wasm/wasm/acrp_wasm.wasm?url";
 
 attachWorkerHandler(
   createEmscriptenModuleFactory(createModule, {
     locateFile(path: string) {
-      return new URL(
-        `../../../../cpp/build/wasm/acrp_wasm/${path}`,
-        import.meta.url,
-      ).href;
+      if (path.endsWith(".wasm")) return wasmUrl;
+      return path;
     },
   }),
 );

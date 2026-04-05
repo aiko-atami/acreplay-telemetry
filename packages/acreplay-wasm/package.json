@@ -1,8 +1,9 @@
 {
   "name": "@aikotami/acreplay-wasm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "files": [
     "dist",
+    "wasm",
     "README.md"
   ],
   "type": "module",
@@ -16,6 +17,12 @@
     "./worker": {
       "types": "./dist/worker.d.ts",
       "import": "./dist/worker.js"
+    },
+    "./wasm": {
+      "import": "./wasm/acrp_wasm.js"
+    },
+    "./wasm/acrp_wasm.wasm": {
+      "import": "./wasm/acrp_wasm.wasm"
     }
   },
   "publishConfig": {
