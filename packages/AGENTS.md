@@ -15,9 +15,9 @@
   - JS <-> wasm ABI boundary
   - worker integration
 
-## `telemetry-pack`
+## `actelemetry`
 
-- Package: `@aiko/telemetry-pack`
+- Package: `@aikotami/actelemetry`
 - Responsibility: read, validate, and analyze the binary lap-pack format produced by the parser.
 - Input: lap-pack bytes (`ArrayBuffer` / `Uint8Array`)
 - Output:
@@ -27,4 +27,4 @@
 
 ## Mental Model
 
-Pipeline: `raw replay file` -> `acreplay-wasm` -> `lapPack bytes` -> `telemetry-pack` -> `telemetry channels / delta / chart data`
+Pipeline: `raw replay file` -> `acreplay-wasm` -> `lapPack bytes` -> `actelemetry` -> `telemetry channels / delta / chart data`

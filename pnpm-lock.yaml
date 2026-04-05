@@ -29,9 +29,9 @@ importers:
       '@aikotami/acreplay-wasm':
         specifier: workspace:*
         version: link:../../packages/acreplay-wasm
-      '@aikotami/telemetry-pack':
+      '@aikotami/actelemetry':
         specifier: workspace:*
-        version: link:../../packages/telemetry-pack
+        version: link:../../packages/actelemetry
     devDependencies:
       vite:
         specifier: 'catalog:'
@@ -42,7 +42,7 @@ importers:
 
   packages/acreplay-wasm: {}
 
-  packages/telemetry-pack: {}
+  packages/actelemetry: {}
 
 packages:
 

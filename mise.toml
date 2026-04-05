@@ -103,7 +103,7 @@ run = "clang-format -i $(rg --files cpp -g '*.[ch]' -g '*.[ch]pp' -g '*.cc' -g '
 
 [tasks."build:ts"]
 description = "Build TS packages with tsgo"
-run = "tsgo -p packages/telemetry-pack/tsconfig.json && tsgo -p packages/acreplay-wasm/tsconfig.json"
+run = "tsgo -p packages/actelemetry/tsconfig.json && tsgo -p packages/acreplay-wasm/tsconfig.json"
 
 # ── Wasm ─────────────────────────────────────────────────────────────
 

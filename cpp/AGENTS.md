@@ -16,8 +16,8 @@ Pack and channel contracts:
 - `LapTelemetryPackV1` is fixed at magic `ACTL`, version `1`, `headerBytes = 36`, `descriptorBytes = 16`. `ChannelDescriptorV1::byteOffset` is relative to `dataOffset`.
 - `cpp/tests/smoke.cpp` is the executable contract for required channels, flags, monotonic `distance_m` / `time_ms`, and optional CSP channel `64 clutch_raw`.
 - `EXT_PERCAR` only has trusted fixed record sizes for v6/v7. Pack v1 currently surfaces only `clutch_raw`; the rest of CSP extra fields are intentionally left unresolved.
-- Channel id changes must stay in lockstep between `cpp/acrp_core/include/acrp/channel_ids.hpp` and `packages/telemetry-pack/src/channelIds.ts`.
-- Pack layout changes must be mirrored in `packages/telemetry-pack/src/readLapPack.ts` and `packages/telemetry-pack/src/validateLapPack.ts`.
+- Channel id changes must stay in lockstep between `cpp/acrp_core/include/acrp/channel_ids.hpp` and `packages/actelemetry/src/channelIds.ts`.
+- Pack layout changes must be mirrored in `packages/actelemetry/src/readLapPack.ts` and `packages/actelemetry/src/validateLapPack.ts`.
 
 Wasm and ABI contracts:
 - Before changing the wasm ABI, inspect `cpp/acrp_wasm/exports.cpp`, `packages/acreplay-wasm/src/module.ts`, and `packages/acreplay-wasm/src/index.ts`.
@@ -28,4 +28,4 @@ Wasm and ABI contracts:
 - If a wasm build hits Emscripten cache issues in this repo, retry with `EM_CACHE=/tmp/emscripten-cache`.
 
 CSV export contract:
-- `acrp_cli` and `acrp::exportCsvFiles(...)` define the supported CSV export surface. Do not change CSV behavior as an incidental side effect of telemetry-pack work.
+- `acrp_cli` and `acrp::exportCsvFiles(...)` define the supported CSV export surface. Do not change CSV behavior as an incidental side effect of actelemetry work.

@@ -1,4 +1,4 @@
-# @aikotami/telemetry-pack
+# @aikotami/actelemetry
 
 TypeScript reader and utility toolkit for the binary lap-pack format produced by the replay parser.
 
@@ -10,4 +10,4 @@ TypeScript reader and utility toolkit for the binary lap-pack format produced by
 
 ## Position in the pipeline
 
-`lapPack bytes` -> `@aikotami/telemetry-pack` -> `channels / delta / chart data`
+`lapPack bytes` -> `@aikotami/actelemetry` -> `channels / delta / chart data`

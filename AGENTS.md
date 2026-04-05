@@ -6,7 +6,7 @@
 - Planning source: `.specify/memory/constitution.md`
 - C++ / wasm rules for `cpp/`: `cpp/AGENTS.md`
 - TS wasm wrapper: `packages/acreplay-wasm/`
-- TS pack reader/validator: `packages/telemetry-pack/`
+- TS pack reader/validator: `packages/actelemetry/`
 
 <!--VITE PLUS START-->
 

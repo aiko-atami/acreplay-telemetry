@@ -4,7 +4,7 @@ import {Worker} from 'node:worker_threads'
 import {pathToFileURL} from 'node:url'
 
 import {createReplayWorkerClient} from '../packages/acreplay-wasm/dist/index.js'
-import {readLapPack} from '../packages/telemetry-pack/dist/index.js'
+import {readLapPack} from '../packages/actelemetry/dist/index.js'
 
 const repoRoot = resolve(import.meta.dirname, '..')
 const replayPath = resolve(repoRoot, 'cpp/tests/fixtures/example.acreplay')
