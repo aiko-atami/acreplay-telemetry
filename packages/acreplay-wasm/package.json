@@ -1,6 +1,9 @@
 {
   "name": "@aikotami/acreplay-wasm",
   "version": "0.2.0",
+  "scripts": {
+    "build": "tsgo -p tsconfig.json"
+  },
   "files": [
     "dist",
     "wasm",

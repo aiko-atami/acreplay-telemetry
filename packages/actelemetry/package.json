@@ -1,6 +1,9 @@
 {
   "name": "@aikotami/actelemetry",
   "version": "0.1.0",
+  "scripts": {
+    "build": "tsgo -p tsconfig.json"
+  },
   "files": [
     "dist",
     "README.md"

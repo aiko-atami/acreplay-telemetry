@@ -4,6 +4,7 @@
   "scripts": {
     "changeset": "changeset",
     "bump": "changeset version",
+    "build": "pnpm --filter './packages/**' run build",
     "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
