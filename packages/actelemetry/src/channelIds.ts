@@ -41,6 +41,6 @@ export const channelIds = {
   wheel_load_rl_n: 46,
   wheel_load_rr_n: 47,
   clutch_raw: 64,
-} as const
+} as const;
 
-    export type ChannelId = (typeof channelIds)[keyof typeof channelIds]
+export type ChannelId = (typeof channelIds)[keyof typeof channelIds];

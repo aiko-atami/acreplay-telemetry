@@ -1,3 +1,3 @@
-declare module 'uplot' {
-  export type AlignedData = ArrayLike<number>[]
+declare module "uplot" {
+  export type AlignedData = ArrayLike<number>[];
 }

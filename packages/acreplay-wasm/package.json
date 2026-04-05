@@ -1,16 +1,13 @@
 {
   "name": "@aikotami/acreplay-wasm",
   "version": "0.1.0",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -20,5 +17,8 @@
       "types": "./dist/worker.d.ts",
       "import": "./dist/worker.js"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
