@@ -1,7 +1,6 @@
 {
   "name": "acreplay-telemetry",
   "private": true,
-  "type": "module",
   "devDependencies": {
     "@typescript/native-preview": "catalog:"
   },
